@@ -1,0 +1,41 @@
+package com.olfa.b2b.commands;
+
+import com.olfa.b2b.LiquidityManager;
+import com.olfa.b2b.shell.Shell;
+import org.jetbrains.annotations.Nullable;
+
+public class CommandParser {
+
+    private final LiquidityManager liquidityManager;
+    private final Shell shell;
+
+    public CommandParser(LiquidityManager liquidityManager, Shell shell) {
+        this.liquidityManager = liquidityManager;
+        this.shell = shell;
+    }
+
+    public @Nullable Command parseCommand(String line) {
+        if (line == null) {
+            return null;
+        }
+        String[] tokens = line.trim().split(" ");
+        if (tokens.length == 0) {
+            return null;
+        } else {
+            switch(tokens[0]) {
+                case "status":
+                    return new StatusCommand(liquidityManager, shell, tokens);
+                case "start":
+                    return new StartCommand(liquidityManager, shell, tokens);
+                case "stop":
+                    return new StopCommand(liquidityManager, shell, tokens);
+                case "restart":
+                    return new RestartCommand(liquidityManager, shell, tokens);
+                case "market":
+                    return new MarketCommand(liquidityManager.subscriptionMonitor, shell, tokens);
+                default:
+                    return null;
+            }
+        }
+    }
+}
