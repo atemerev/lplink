@@ -6,17 +6,8 @@ import com.miriamlaurel.pms.listeners.MessageListenerDelegate;
 import com.miriamlaurel.pms.listeners.dispatch.DispatchListener;
 import com.miriamlaurel.prometheus.MementoPromise;
 import com.miriamlaurel.prometheus.Promise;
-import com.olfa.b2b.domain.ExecutionReport;
-import com.olfa.b2b.domain.Feed;
-import com.olfa.b2b.domain.Order;
-import com.olfa.b2b.domain.Quote;
-import com.olfa.b2b.domain.Reject;
-import com.olfa.b2b.domain.Trade;
-import com.olfa.b2b.domain.TradePromise;
-import com.olfa.b2b.events.Diagnostic;
-import com.olfa.b2b.events.Offline;
-import com.olfa.b2b.events.Online;
-import com.olfa.b2b.events.Status;
+import com.olfa.b2b.domain.*;
+import com.olfa.b2b.events.*;
 import com.olfa.b2b.exception.ConfigurationException;
 import com.olfa.b2b.exception.RejectedException;
 import com.olfa.b2b.lp.quickfix.FixLpConfiguration;
@@ -26,8 +17,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import quickfix.*;
 
-import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -41,8 +30,8 @@ public abstract class FixLiquidityProvider extends MessageCracker implements Liq
     protected final ConcurrentMap<String, TradePromise> tradePromises = new ConcurrentHashMap<>();
     private final ConcurrentMap<SessionID, Boolean> sessionStatus = new ConcurrentHashMap<>();
     private volatile Status<? extends LiquidityProvider> status;
-    private ListeningPromise<Status<? extends LiquidityProvider>> connectionPromise;
-    private ListeningPromise<Status<? extends LiquidityProvider>> disconnectionPromise;
+    private ListeningPromise<Online<? extends LiquidityProvider>> connectionPromise;
+    private ListeningPromise<Offline<? extends LiquidityProvider>> disconnectionPromise;
 
     private Initiator initiator;
 
@@ -102,7 +91,7 @@ public abstract class FixLiquidityProvider extends MessageCracker implements Liq
 
     // Rest of implementation...
 
-    @Override public Promise<Status<? extends LiquidityProvider>> connect() {
+    @Override public Promise<Online<? extends LiquidityProvider>> connect() {
         try {
             if (this.initiator == null) {
                 this.initiator = createInitiator();
@@ -115,7 +104,7 @@ public abstract class FixLiquidityProvider extends MessageCracker implements Liq
         }
     }
 
-    @Override public Promise<Status<? extends LiquidityProvider>> disconnect() {
+    @Override public Promise<Offline<? extends LiquidityProvider>> disconnect() {
         this.disconnectionPromise = new ListeningPromise<>();
         unsubscribe();
         initiator.stop();
@@ -154,14 +143,6 @@ public abstract class FixLiquidityProvider extends MessageCracker implements Liq
         TradePromise promise = new TradePromise(order);
         tradePromises.put(order.id, promise);
         return promise;
-    }
-
-    @Override public Set<Feed> getAvailableFeeds() {
-        return configuration.feeds;
-    }
-
-    @Override public List<MessageListener> listeners() {
-        return notifier.listeners();
     }
 
     // QuickFIX Application interface that can be overridden if necessary
@@ -252,9 +233,6 @@ public abstract class FixLiquidityProvider extends MessageCracker implements Liq
 
     @Listener public void $(Offline<SessionID> offline) {
         sessionStatus.put(offline.getSubject(), true);
-        for (Feed feed : getAvailableFeeds()) {
-            notifier.processMessage(new Offline<>(feed, String.format("%s is disconnected", getName().toUpperCase())));
-        }
         final Offline<FixLiquidityProvider> status = new Offline<>(this, offline.getReason());
         this.status = status;
         notifier.processMessage(status);
@@ -267,6 +245,29 @@ public abstract class FixLiquidityProvider extends MessageCracker implements Liq
 
     @Override public String toString() {
         return configuration.name.toUpperCase();
+    }
+
+    @Override
+    public Promise<Online<Feed>> subscribe(Feed feed) {
+        return null;
+    }
+
+    @Override
+    public Promise<Offline<Feed>> unsubscribe(Feed feed) {
+        return null;
+    }
+
+    @Override
+    public Status<Feed> getSubscriptionStatus(Feed feed) {
+        return null;
+    }
+
+    @Override
+    public void addStatusListener(LpStatusListener<? extends LiquidityProvider> listener) {
+    }
+
+    @Override
+    public void addMarketDataListener(MarketDataListener listener) {
     }
 
     private SocketInitiator createInitiator() throws ConfigError {

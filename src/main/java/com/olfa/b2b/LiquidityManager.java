@@ -3,7 +3,8 @@ package com.olfa.b2b;
 import com.miriamlaurel.pms.listeners.dispatch.DispatchListener;
 import com.miriamlaurel.prometheus.Promise;
 import com.olfa.b2b.domain.Feed;
-import com.olfa.b2b.events.Status;
+import com.olfa.b2b.events.Offline;
+import com.olfa.b2b.events.Online;
 import com.olfa.b2b.exception.ConfigurationException;
 import com.olfa.b2b.exception.ValidationException;
 import com.olfa.b2b.lp.LiquidityProvider;
@@ -12,11 +13,7 @@ import com.typesafe.config.Config;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class LiquidityManager extends DispatchListener {
 
@@ -26,13 +23,7 @@ public class LiquidityManager extends DispatchListener {
     public LiquidityManager(@NotNull Config config) throws ConfigurationException {
         this.liquidityProviders = createProviders(config);
         Set<Feed> allFeeds = new HashSet<>();
-        for (LiquidityProvider provider : liquidityProviders.values()) {
-            allFeeds.addAll(provider.getAvailableFeeds());
-        }
         this.subscriptionMonitor = new SubscriptionMonitor(Collections.unmodifiableSet(allFeeds), getTickPeriod(config), getTimeout(config));
-        for (LiquidityProvider provider : liquidityProviders.values()) {
-            provider.listeners().add(subscriptionMonitor);
-        }
     }
 
     @SuppressWarnings("unchecked")
@@ -44,7 +35,7 @@ public class LiquidityManager extends DispatchListener {
                 Config lpConfig = providersConf.getConfig(lpName);
                 Class<? extends LiquidityProvider> lpClass = (Class<? extends LiquidityProvider>) Class.forName(lpConfig.getString("implementation"));
                 LiquidityProvider lp = lpClass.getConstructor(Config.class).newInstance(lpConfig);
-                lp.listeners().add(this);
+//                lp.addStatusListener(this);
                 lpMap.put(lp.getName(), lp);
             }
             return Collections.unmodifiableMap(lpMap);
@@ -67,7 +58,7 @@ public class LiquidityManager extends DispatchListener {
         return config.getLong("b2b.subscriptions.timeout");
     }
 
-    public Promise<Status<? extends LiquidityProvider>> start(String lpName) throws ValidationException {
+    public Promise<Online<? extends LiquidityProvider>> start(String lpName) throws ValidationException {
         LiquidityProvider lp = liquidityProviders.get(lpName);
         if (lp != null) {
             if (!lp.getStatus().isOnline()) {
@@ -80,7 +71,7 @@ public class LiquidityManager extends DispatchListener {
         }
     }
 
-    public Promise<Status<? extends LiquidityProvider>> stop(String lpName) {
+    public Promise<Offline<? extends LiquidityProvider>> stop(String lpName) {
         LiquidityProvider lp = liquidityProviders.get(lpName);
         if (lp != null) {
             if (lp.getStatus().isOnline()) {

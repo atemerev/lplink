@@ -45,20 +45,6 @@ public class Rbs extends FixLiquidityProvider {
     }
 
     @Override protected void subscribe() {
-        Map<String, Feed> subscriptions = new HashMap<>();
-        for (Feed feed : getAvailableFeeds()) {
-            final String subscriptionId = feed.generateSubscriptionId();
-            subscriptions.put(subscriptionId, feed);
-            QuoteRequest message = new QuoteRequest();
-            message.set(new QuoteReqID(subscriptionId));
-            message.setString(Symbol.FIELD, feed.instrument.toString());
-            QuoteRequest.NoRelatedSym group = new QuoteRequest.NoRelatedSym();
-            assert feed.amount != null;
-            group.set(new OrderQty(feed.amount.doubleValue()));
-            group.set(new SettlType(SettlType.REGULAR));
-            message.addGroup(group);
-            sendTo(QUOTE_SESSION, message);
-        }
         this.subscriptions = Collections.unmodifiableMap(subscriptions);
     }
 
