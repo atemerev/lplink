@@ -44,18 +44,14 @@ public class Rbs extends FixLiquidityProvider {
         super("rbs", conf);
     }
 
-    @Override protected void subscribe() {
-        this.subscriptions = Collections.unmodifiableMap(subscriptions);
+    @Override
+    protected void sendSubscribe(Feed feed) {
+        // todo implement
     }
 
-    @Override protected void unsubscribe() {
-        for (String requestId : subscriptions.keySet()) {
-            QuoteCancel message = new QuoteCancel();
-            message.set(new QuoteReqID(requestId));
-            message.set(new QuoteCancelType(QuoteCancelType.CANCEL_FOR_SYMBOL));
-            sendTo(QUOTE_SESSION, message);
-        }
-        // No need to clear subscription IDs, as they can be used for tracking leftover quotes
+    @Override
+    protected void sendUnsubscribe(Feed feed) {
+        // todo implement
     }
 
     @Override protected void sendOrder(Order order) {
