@@ -1,14 +1,11 @@
 package com.olfa.b2b.lp;
 
-import com.miriamlaurel.pms.listeners.HasMessageListeners;
 import com.miriamlaurel.prometheus.MementoPromise;
 import com.miriamlaurel.prometheus.Promise;
 import com.olfa.b2b.domain.Feed;
 import com.olfa.b2b.domain.Order;
 import com.olfa.b2b.domain.Trade;
 import com.olfa.b2b.events.*;
-
-import java.util.Set;
 
 public interface LiquidityProvider {
     Promise<Online<? extends LiquidityProvider>> connect();
@@ -18,7 +15,7 @@ public interface LiquidityProvider {
     Promise<Offline<Feed>> unsubscribe(Feed feed);
     Status<Feed> getSubscriptionStatus(Feed feed);
     String getName();
-    void addStatusListener(LpStatusListener<? extends LiquidityProvider> listener);
+    void addStatusListener(StatusListener<? extends LiquidityProvider> listener);
     void addMarketDataListener(MarketDataListener listener);
     MementoPromise<Trade> trade(Order order);
 }

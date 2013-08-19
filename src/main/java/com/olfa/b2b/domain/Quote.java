@@ -1,11 +1,9 @@
 package com.olfa.b2b.domain;
 
-import com.olfa.b2b.util.Scaler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 
 public class Quote {
 

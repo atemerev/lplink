@@ -59,6 +59,7 @@ public abstract class FixLiquidityProvider extends MessageCracker implements Liq
     }
 
     // These methods are to be overridden for specific LP implementations
+    // TODO fix for new subscription schema
 
     protected abstract void subscribe();
 
@@ -263,7 +264,7 @@ public abstract class FixLiquidityProvider extends MessageCracker implements Liq
     }
 
     @Override
-    public void addStatusListener(LpStatusListener<? extends LiquidityProvider> listener) {
+    public void addStatusListener(StatusListener<? extends LiquidityProvider> listener) {
     }
 
     @Override
