@@ -1,7 +1,7 @@
 package com.olfa.b2b.lp.quickfix;
 
 import com.olfa.b2b.domain.CurrencyPair;
-import com.olfa.b2b.domain.Feed;
+import com.olfa.b2b.domain.Subscription;
 import com.olfa.b2b.exception.ConfigurationException;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
@@ -26,7 +26,7 @@ public class FixLpConfiguration {
     public final String name;
     public final Map<String, SessionID> sessionIDs;
     public final SessionSettings sessionSettings;
-    public final Set<Feed> feeds;
+    public final Set<Subscription> subscriptions;
 
     @SuppressWarnings("NullableProblems")
     public FixLpConfiguration(String name, Config rawConfig, @Nullable Config defaultConfig) throws ConfigurationException {
@@ -41,7 +41,7 @@ public class FixLpConfiguration {
         Config defaultSession = rawConfig.getConfig("sessions.default");
         populateDefaultSession(defaultSession);
         this.sessionIDs = populateSessions(defaultSession.getString("version"), rawConfig);
-        this.feeds = mkFeeds(rawConfig);
+        this.subscriptions = mkFeeds(rawConfig);
     }
 
     public boolean isSessionManaged(String name) {
@@ -124,13 +124,13 @@ public class FixLpConfiguration {
     }
 
 
-    private Set<Feed> mkFeeds(Config conf) {
-        Set<Feed> feeds = new HashSet<>();
+    private Set<Subscription> mkFeeds(Config conf) {
+        Set<Subscription> subscriptions = new HashSet<>();
         for (String symbol : conf.getStringList("instruments")) {
             CurrencyPair instrument = new CurrencyPair(symbol);
             for (long amount : conf.getLongList("bands"))
-                feeds.add(new Feed(name, instrument, new BigDecimal(amount), null));
+                subscriptions.add(new Subscription(name, instrument, new BigDecimal(amount), null));
         }
-        return Collections.unmodifiableSet(feeds);
+        return Collections.unmodifiableSet(subscriptions);
     }
 }

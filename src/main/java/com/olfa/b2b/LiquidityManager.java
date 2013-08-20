@@ -2,7 +2,7 @@ package com.olfa.b2b;
 
 import com.miriamlaurel.pms.listeners.dispatch.DispatchListener;
 import com.miriamlaurel.prometheus.Promise;
-import com.olfa.b2b.domain.Feed;
+import com.olfa.b2b.domain.Subscription;
 import com.olfa.b2b.events.Offline;
 import com.olfa.b2b.events.Online;
 import com.olfa.b2b.exception.ConfigurationException;
@@ -22,8 +22,8 @@ public class LiquidityManager extends DispatchListener {
 
     public LiquidityManager(@NotNull Config config) throws ConfigurationException {
         this.liquidityProviders = createProviders(config);
-        Set<Feed> allFeeds = new HashSet<>();
-        this.subscriptionMonitor = new SubscriptionMonitor(Collections.unmodifiableSet(allFeeds), getTickPeriod(config), getTimeout(config));
+        Set<Subscription> allSubscriptions = new HashSet<>();
+        this.subscriptionMonitor = new SubscriptionMonitor(Collections.unmodifiableSet(allSubscriptions), getTickPeriod(config), getTimeout(config));
     }
 
     @SuppressWarnings("unchecked")
@@ -35,7 +35,6 @@ public class LiquidityManager extends DispatchListener {
                 Config lpConfig = providersConf.getConfig(lpName);
                 Class<? extends LiquidityProvider> lpClass = (Class<? extends LiquidityProvider>) Class.forName(lpConfig.getString("implementation"));
                 LiquidityProvider lp = lpClass.getConstructor(Config.class).newInstance(lpConfig);
-//                lp.addStatusListener(this);
                 lpMap.put(lp.getName(), lp);
             }
             return Collections.unmodifiableMap(lpMap);

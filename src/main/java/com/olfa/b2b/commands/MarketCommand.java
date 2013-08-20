@@ -1,6 +1,6 @@
 package com.olfa.b2b.commands;
 
-import com.olfa.b2b.domain.Feed;
+import com.olfa.b2b.domain.Subscription;
 import com.olfa.b2b.events.Status;
 import com.olfa.b2b.lp.SubscriptionMonitor;
 import com.olfa.b2b.shell.Shell;
@@ -18,9 +18,9 @@ public class MarketCommand implements Command {
     }
 
     @Override public void run() {
-        Set<Feed> allFeeds = monitor.feeds;
-        for (Feed feed : allFeeds) {
-            Status<Feed> status = monitor.getStatus(feed);
+        Set<Subscription> allSubscriptions = monitor.subscriptions;
+        for (Subscription subscription : allSubscriptions) {
+            Status<Subscription> status = monitor.getStatus(subscription);
             shell.log(status.toString());
         }
     }

@@ -5,31 +5,28 @@ import org.jetbrains.annotations.Nullable;
 
 import java.math.BigDecimal;
 
-public class Feed {
+public class Subscription {
 
     public @NotNull final String source;
     public @NotNull final CurrencyPair instrument;
     public @Nullable final BigDecimal amount;
+    public @Nullable final String requestId;
     public @Nullable final String classifier;
 
     private final String toString;
     private volatile long ts;
 
-    public Feed(@NotNull String source, @NotNull CurrencyPair instrument, @Nullable BigDecimal amount, @Nullable String classifier) {
+    public Subscription(@NotNull String source, @NotNull CurrencyPair instrument, @Nullable BigDecimal amount, @Nullable String classifier) {
         this.source = source;
         this.instrument = instrument;
         this.amount = amount;
         this.classifier = classifier;
-        this.ts = System.currentTimeMillis();
         this.toString = mkString();
+        this.requestId = toString() + "req" + System.currentTimeMillis();
     }
 
-    public Feed(@NotNull String source, @NotNull CurrencyPair instrument) {
+    public Subscription(@NotNull String source, @NotNull CurrencyPair instrument) {
         this(source, instrument, null, null);
-    }
-
-    public String generateSubscriptionId() {
-        return toString() + "-req-" + (ts++);
     }
 
     @Override public String toString() {
@@ -42,12 +39,12 @@ public class Feed {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        Feed feed = (Feed) o;
+        Subscription subscription = (Subscription) o;
 
-        if (amount != null ? !amount.equals(feed.amount) : feed.amount != null) return false;
-        if (classifier != null ? !classifier.equals(feed.classifier) : feed.classifier != null) return false;
-        if (!instrument.equals(feed.instrument)) return false;
-        if (!source.equals(feed.source)) return false;
+        if (amount != null ? !amount.equals(subscription.amount) : subscription.amount != null) return false;
+        if (classifier != null ? !classifier.equals(subscription.classifier) : subscription.classifier != null) return false;
+        if (!instrument.equals(subscription.instrument)) return false;
+        if (!source.equals(subscription.source)) return false;
 
         return true;
     }

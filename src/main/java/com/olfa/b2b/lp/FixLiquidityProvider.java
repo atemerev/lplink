@@ -59,11 +59,10 @@ public abstract class FixLiquidityProvider extends MessageCracker implements Liq
     }
 
     // These methods are to be overridden for specific LP implementations
-    // TODO fix for new subscription schema
 
-    protected abstract void sendSubscribe(Feed feed);
+    protected abstract void sendSubscribe(Subscription subscription);
 
-    protected abstract void sendUnsubscribe(Feed feed);
+    protected abstract void sendUnsubscribe(Subscription subscription);
 
     protected abstract void sendOrder(Order order);
 
@@ -240,7 +239,7 @@ public abstract class FixLiquidityProvider extends MessageCracker implements Liq
         disconnectionPromise.processMessage(status);
     }
 
-    @Listener public void $(Reject<Feed> reject) {
+    @Listener public void $(Reject<Subscription> reject) {
         notifier.processMessage(new Offline<>(reject.request, reject.reason));
     }
 
@@ -249,17 +248,17 @@ public abstract class FixLiquidityProvider extends MessageCracker implements Liq
     }
 
     @Override
-    public Promise<Online<Feed>> subscribe(Feed feed) {
+    public Promise<Online<Subscription>> subscribe(Subscription subscription) {
         return null;
     }
 
     @Override
-    public Promise<Offline<Feed>> unsubscribe(Feed feed) {
+    public Promise<Offline<Subscription>> unsubscribe(Subscription subscription) {
         return null;
     }
 
     @Override
-    public Status<Feed> getSubscriptionStatus(Feed feed) {
+    public Status<Subscription> getSubscriptionStatus(Subscription subscription) {
         return null;
     }
 

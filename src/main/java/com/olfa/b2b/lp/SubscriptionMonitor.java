@@ -5,7 +5,7 @@ import com.miriamlaurel.pms.listeners.HasMessageListeners;
 import com.miriamlaurel.pms.listeners.MessageListener;
 import com.miriamlaurel.pms.listeners.MessageListenerDelegate;
 import com.miriamlaurel.pms.listeners.dispatch.DispatchListener;
-import com.olfa.b2b.domain.Feed;
+import com.olfa.b2b.domain.Subscription;
 import com.olfa.b2b.domain.Quote;
 import com.olfa.b2b.events.Offline;
 import com.olfa.b2b.events.Online;
@@ -19,17 +19,17 @@ public class SubscriptionMonitor extends DispatchListener implements HasMessageL
     private final long timeout;
 
     private final MessageListenerDelegate delegate = new MessageListenerDelegate();
-    private final Map<Feed, Status<Feed>> states = new ConcurrentHashMap<>();
+    private final Map<Subscription, Status<Subscription>> states = new ConcurrentHashMap<>();
 
     private final Timer timer = new Timer(true);
 
-    public final Set<Feed> feeds;
+    public final Set<Subscription> subscriptions;
 
-    public SubscriptionMonitor(Set<Feed> feeds, long tick, long timeout) {
-        this.feeds = feeds;
+    public SubscriptionMonitor(Set<Subscription> subscriptions, long tick, long timeout) {
+        this.subscriptions = subscriptions;
         this.timeout = timeout;
-        for (Feed feed : feeds) {
-            states.put(feed, new Offline<>(feed, "Not started yet"));
+        for (Subscription subscription : subscriptions) {
+            states.put(subscription, new Offline<>(subscription, "Not started yet"));
         }
         timer.schedule(new TimerTask() {
             @Override public void run() {
@@ -39,27 +39,27 @@ public class SubscriptionMonitor extends DispatchListener implements HasMessageL
     }
 
     @Listener void $(Quote quote) {
-        Feed feed = quote.feed;
-        Status prev = states.get(feed);
+        Subscription subscription = quote.subscription;
+        Status prev = states.get(subscription);
         assert prev != null;
         if (!prev.isOnline()) {
-            final Online<Feed> online = new Online<>(feed);
-            states.put(feed, online);
+            final Online<Subscription> online = new Online<>(subscription);
+            states.put(subscription, online);
             delegate.processMessage(online);
         } else {
-            @SuppressWarnings("unchecked") final Online<Feed> online = (Online<Feed>) prev;
+            @SuppressWarnings("unchecked") final Online<Subscription> online = (Online<Subscription>) prev;
             online.touch();
         }
     }
 
     @Listener void $(Tick tick) {
-        for (Feed feed : states.keySet()) {
-            Status<Feed> status = states.get(feed);
+        for (Subscription subscription : states.keySet()) {
+            Status<Subscription> status = states.get(subscription);
             final long current = System.currentTimeMillis();
             final Long timestamp = status.lastUpdate();
             if (status.isOnline() && current > timestamp + timeout) {
-                final Offline<Feed> offline = new Offline<>(feed, "Feed timeout");
-                states.put(feed, offline);
+                final Offline<Subscription> offline = new Offline<>(subscription, "Subscription timeout");
+                states.put(subscription, offline);
                 delegate.processMessage(offline);
             }
         }
@@ -67,16 +67,16 @@ public class SubscriptionMonitor extends DispatchListener implements HasMessageL
 
     @SuppressWarnings("unchecked")
     @Listener void $(Offline offline) {
-        if (offline.getSubject() instanceof Feed) {
-            Feed feed = (Feed) offline.getSubject();
-            final Status<Feed> status = (Status<Feed>) offline;
-            states.put(feed, status);
+        if (offline.getSubject() instanceof Subscription) {
+            Subscription subscription = (Subscription) offline.getSubject();
+            final Status<Subscription> status = (Status<Subscription>) offline;
+            states.put(subscription, status);
             delegate.processMessage(status);
         }
     }
 
-    public Status<Feed> getStatus(Feed feed) {
-        return states.get(feed);
+    public Status<Subscription> getStatus(Subscription subscription) {
+        return states.get(subscription);
     }
 
     @Override public List<MessageListener> listeners() {

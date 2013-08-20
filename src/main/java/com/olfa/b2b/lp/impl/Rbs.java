@@ -2,6 +2,9 @@ package com.olfa.b2b.lp.impl;
 
 import com.miriamlaurel.pms.listeners.MessageListener;
 import com.olfa.b2b.domain.*;
+import com.olfa.b2b.domain.ExecutionReport;
+import com.olfa.b2b.domain.Quote;
+import com.olfa.b2b.domain.Reject;
 import com.olfa.b2b.events.Diagnostic;
 import com.olfa.b2b.events.Offline;
 import com.olfa.b2b.events.Online;
@@ -17,11 +20,7 @@ import quickfix.SessionID;
 import quickfix.UnsupportedMessageType;
 import quickfix.field.*;
 import quickfix.field.Side;
-import quickfix.fix44.NewOrderSingle;
-import quickfix.fix44.QuoteCancel;
-import quickfix.fix44.QuoteRequest;
-import quickfix.fix44.QuoteRequestReject;
-import quickfix.fix44.TradingSessionStatus;
+import quickfix.fix44.*;
 
 import java.math.BigDecimal;
 import java.util.Collections;
@@ -34,7 +33,7 @@ public class Rbs extends FixLiquidityProvider {
     private static final String APPLICATION_PING_REQUEST = "U1";
     private static final String APPLICATION_PING_RESPONSE = "U2";
 
-    private volatile Map<String, Feed> subscriptions = Collections.unmodifiableMap(new HashMap<String, Feed>());
+    private volatile Map<String, Subscription> subscriptions = Collections.unmodifiableMap(new HashMap<String, Subscription>());
 
     public Rbs(@NotNull Config conf, @Nullable MessageListener listener) throws ConfigurationException {
         super("rbs", conf, listener);
@@ -45,13 +44,26 @@ public class Rbs extends FixLiquidityProvider {
     }
 
     @Override
-    protected void sendSubscribe(Feed feed) {
-        // todo implement
+    protected void sendSubscribe(Subscription subscription) {
+        QuoteRequest message = new QuoteRequest();
+        message.set(new QuoteReqID(subscription.requestId));
+        message.setString(Symbol.FIELD, subscription.instrument.toString());
+        QuoteRequest.NoRelatedSym group = new QuoteRequest.NoRelatedSym();
+        if (subscription.amount == null) {
+            throw new IllegalArgumentException("RBS doesn't support blanket subscriptions");
+        }
+        group.setString(OrderQty.FIELD, subscription.amount.toPlainString());
+        group.set(new SettlType(SettlType.REGULAR));
+        message.addGroup(group);
+        sendTo(QUOTE_SESSION, message);
     }
 
     @Override
-    protected void sendUnsubscribe(Feed feed) {
-        // todo implement
+    protected void sendUnsubscribe(Subscription subscription) {
+        QuoteCancel message = new QuoteCancel();
+        message.set(new QuoteReqID(subscription.requestId));
+        message.set(new QuoteCancelType(QuoteCancelType.CANCEL_FOR_SYMBOL));
+        sendTo(QUOTE_SESSION, message);
     }
 
     @Override protected void sendOrder(Order order) {
@@ -93,30 +105,30 @@ public class Rbs extends FixLiquidityProvider {
         String requestId = message.getQuoteReqID().getValue();
         int code = message.getQuoteRequestRejectReason().getValue();
         String reason = message.isSetText() ? message.getText().getValue() : String.format("Request rejected: %d", code);
-        Feed feed = this.subscriptions.get(requestId);
-        Map<String, Feed> newSubscriptions = new HashMap<>(subscriptions);
+        Subscription subscription = this.subscriptions.get(requestId);
+        Map<String, Subscription> newSubscriptions = new HashMap<>(subscriptions);
         newSubscriptions.remove(requestId);
         this.subscriptions = newSubscriptions;
-        processMessage(new Reject<>(feed, reason));
+        processMessage(new Reject<>(subscription, reason));
     }
 
     public void onMessage(quickfix.fix44.Quote message, SessionID sessionID) throws FieldNotFound, UnsupportedMessageType, IncorrectTagValue {
         String requestId = message.getQuoteReqID().getValue();
-        Feed feed = subscriptions.get(requestId);
-        if (feed != null) {
+        Subscription subscription = subscriptions.get(requestId);
+        if (subscription != null) {
             String quoteId = message.getQuoteID().getValue();
             final double bidPx = message.getBidPx().getValue();
             final double offerPx = message.getOfferPx().getValue();
             boolean tradable = QuoteCondition.OPEN_ACTIVE.equals(message.getString(QuoteCondition.FIELD));
             if (tradable && bidPx > 0) {
-                onQuote(new Quote(Quote.Action.PUT, quoteId, feed, Quote.Side.BID, requestId, null, bidPx));
+                onQuote(new Quote(Quote.Action.PUT, quoteId, subscription, Quote.Side.BID, requestId, null, bidPx));
             } else {
-                onQuote(new Quote(Quote.Action.REMOVE, quoteId, feed, Quote.Side.BID, requestId));
+                onQuote(new Quote(Quote.Action.REMOVE, quoteId, subscription, Quote.Side.BID, requestId));
             }
             if (tradable && offerPx > 0) {
-                onQuote(new Quote(Quote.Action.PUT, quoteId, feed, Quote.Side.ASK, requestId, null, offerPx));
+                onQuote(new Quote(Quote.Action.PUT, quoteId, subscription, Quote.Side.ASK, requestId, null, offerPx));
             } else {
-                onQuote(new Quote(Quote.Action.REMOVE, quoteId, feed, Quote.Side.ASK, requestId));
+                onQuote(new Quote(Quote.Action.REMOVE, quoteId, subscription, Quote.Side.ASK, requestId));
             }
         }
     }
