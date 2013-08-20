@@ -62,7 +62,7 @@ public class Subscription {
         StringBuilder builder = new StringBuilder();
         builder.append(source);
         builder.append("-");
-        builder.append(instrument.toString());
+        builder.append(instrument.toString().toLowerCase().replaceFirst("/", ""));
         if (amount != null) {
             builder.append("-");
             builder.append(amount.toPlainString());
