@@ -1,6 +1,5 @@
 package com.olfa.b2b;
 
-import com.miriamlaurel.pms.listeners.dispatch.DispatchListener;
 import com.miriamlaurel.prometheus.Promise;
 import com.olfa.b2b.domain.Subscription;
 import com.olfa.b2b.events.Offline;
@@ -15,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
-public class LiquidityManager extends DispatchListener {
+public class LiquidityManager {
 
     public final Map<String, LiquidityProvider> liquidityProviders;
     public final SubscriptionMonitor subscriptionMonitor;
@@ -67,6 +66,32 @@ public class LiquidityManager extends DispatchListener {
             }
         } else {
             throw new ValidationException(String.format("LP %s not found", lpName));
+        }
+    }
+
+    public Promise<Online<Subscription>> subscribe(Subscription subscription) throws ValidationException {
+        LiquidityProvider lp = liquidityProviders.get(subscription.source);
+        if (lp != null) {
+            if (lp.getStatus().isOnline()) {
+                return lp.subscribe(subscription);
+            } else {
+                throw new ValidationException(String.format("LP %s is offline", lp.getName()));
+            }
+        } else {
+            throw new ValidationException(String.format("LP %s not found", subscription.source));
+        }
+    }
+
+    public Promise<Offline<Subscription>> unsubscribe(Subscription subscription) throws ValidationException {
+        LiquidityProvider lp = liquidityProviders.get(subscription.source);
+        if (lp != null) {
+            if (lp.getStatus().isOnline()) {
+                return lp.unsubscribe(subscription);
+            } else {
+                throw new ValidationException(String.format("LP %s is offline", lp.getName()));
+            }
+        } else {
+            throw new ValidationException(String.format("LP %s not found", subscription.source));
         }
     }
 
