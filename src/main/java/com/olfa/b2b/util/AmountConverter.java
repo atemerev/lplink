@@ -7,21 +7,18 @@ import java.util.regex.Pattern;
 public class AmountConverter {
 
     private static final Pattern REGEX = Pattern.compile("^((\\d+)(\\w?)$)");
-    private static final BigDecimal BD_1K = new BigDecimal(1000);
-    private static final BigDecimal BD_1M = new BigDecimal(1000000);
 
-
-    public static BigDecimal expand(String brief) throws IllegalArgumentException {
+    public static long expand(String brief) throws IllegalArgumentException {
         Matcher matcher = REGEX.matcher(brief);
         if (matcher.matches()) {
-            BigDecimal amount = new BigDecimal(matcher.group(1));
-            String multiplierString = matcher.group(2);
-            if (multiplierString == null) {
+            long amount = Long.parseLong(matcher.group(2));
+            String multiplierString = matcher.group(3);
+            if (multiplierString == null || "".equals(multiplierString)) {
                 return amount;
             } else if ("k".equalsIgnoreCase(multiplierString)) {
-                return amount.multiply(new BigDecimal(1000));
+                return amount * 1000;
             } else if ("m".equalsIgnoreCase(multiplierString)) {
-                return amount.multiply(new BigDecimal(1000000));
+                return amount * 1000000;
             } else {
                 throw new IllegalArgumentException("Only K and M multiplers are supported");
             }
@@ -30,15 +27,15 @@ public class AmountConverter {
         }
     }
 
-    public static String contract(BigDecimal amount) throws IllegalArgumentException {
-        final BigDecimal d1m = amount.divideToIntegralValue(BD_1M);
-        final BigDecimal d1k = amount.divideToIntegralValue(BD_1K);
-        if (d1m.multiply(BD_1M).equals(amount)) {
-            return d1m.toPlainString() + "m";
-        } else if (d1k.multiply(BD_1K).equals(amount)) {
-            return d1k.toPlainString() + "k";
+    public static String contract(long amount) throws IllegalArgumentException {
+        final long d1m = amount / 1000000;
+        final long d1k = amount / 1000;
+        if (d1m * 1000000 == amount) {
+            return d1m + "m";
+        } else if (d1k * 1000 == amount) {
+            return d1k + "k";
         } else {
-            return amount.toPlainString();
+            return "" + amount;
         }
     }
 }
