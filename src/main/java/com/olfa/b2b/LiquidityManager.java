@@ -5,6 +5,7 @@ import com.olfa.b2b.domain.Subscription;
 import com.olfa.b2b.events.Offline;
 import com.olfa.b2b.events.Online;
 import com.olfa.b2b.exception.ConfigurationException;
+import com.olfa.b2b.exception.LifecycleException;
 import com.olfa.b2b.exception.ValidationException;
 import com.olfa.b2b.lp.LiquidityProvider;
 import com.olfa.b2b.lp.SubscriptionMonitor;
@@ -19,7 +20,7 @@ public class LiquidityManager {
     public final Map<String, LiquidityProvider> liquidityProviders;
     public final SubscriptionMonitor subscriptionMonitor;
 
-    public LiquidityManager(@NotNull Config config) throws ConfigurationException {
+    public LiquidityManager(@NotNull Config config) throws ConfigurationException, LifecycleException {
         this.liquidityProviders = createProviders(config);
         Set<Subscription> allSubscriptions = new HashSet<>();
         this.subscriptionMonitor = new SubscriptionMonitor(Collections.unmodifiableSet(allSubscriptions), getTickPeriod(config), getTimeout(config));
@@ -56,55 +57,13 @@ public class LiquidityManager {
         return config.getLong("b2b.subscriptions.timeout");
     }
 
-    public Promise<Online<? extends LiquidityProvider>> start(String lpName) throws ValidationException {
-        LiquidityProvider lp = liquidityProviders.get(lpName);
-        if (lp != null) {
-            if (!lp.getStatus().isOnline()) {
-                return lp.connect();
-            } else {
-                throw new ValidationException(String.format("LP %s is already online", lpName));
-            }
-        } else {
-            throw new ValidationException(String.format("LP %s not found", lpName));
-        }
-    }
-
-    public Promise<Online<Subscription>> subscribe(Subscription subscription) throws ValidationException {
+    public void subscribe(Subscription subscription) throws ValidationException {
         LiquidityProvider lp = liquidityProviders.get(subscription.source);
-        if (lp != null) {
-            if (lp.getStatus().isOnline()) {
-                return lp.subscribe(subscription);
-            } else {
-                throw new ValidationException(String.format("LP %s is offline", lp.getName()));
-            }
-        } else {
-            throw new ValidationException(String.format("LP %s not found", subscription.source));
-        }
+        lp.subscribe(subscription);
     }
 
-    public Promise<Offline<Subscription>> unsubscribe(Subscription subscription) throws ValidationException {
+    public void unsubscribe(Subscription subscription) throws ValidationException {
         LiquidityProvider lp = liquidityProviders.get(subscription.source);
-        if (lp != null) {
-            if (lp.getStatus().isOnline()) {
-                return lp.unsubscribe(subscription);
-            } else {
-                throw new ValidationException(String.format("LP %s is offline", lp.getName()));
-            }
-        } else {
-            throw new ValidationException(String.format("LP %s not found", subscription.source));
-        }
-    }
-
-    public Promise<Offline<? extends LiquidityProvider>> stop(String lpName) {
-        LiquidityProvider lp = liquidityProviders.get(lpName);
-        if (lp != null) {
-            if (lp.getStatus().isOnline()) {
-                return lp.disconnect();
-            } else {
-                throw new ValidationException(String.format("LP %s is already offline", lpName));
-            }
-        } else {
-            throw new ValidationException(String.format("LP not found: %s", lpName));
-        }
+        lp.unsubscribe(subscription);
     }
 }

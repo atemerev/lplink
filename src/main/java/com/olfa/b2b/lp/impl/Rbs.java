@@ -43,8 +43,7 @@ public class Rbs extends FixLiquidityProvider {
         super("rbs", conf);
     }
 
-    @Override
-    protected void sendSubscribe(Subscription subscription) {
+    public void subscribe(Subscription subscription) {
         QuoteRequest message = new QuoteRequest();
         message.set(new QuoteReqID(subscription.requestId));
         message.setString(Symbol.FIELD, subscription.instrument.toString());
@@ -58,15 +57,15 @@ public class Rbs extends FixLiquidityProvider {
         sendTo(QUOTE_SESSION, message);
     }
 
-    @Override
-    protected void sendUnsubscribe(Subscription subscription) {
+    public void unsubscribe(Subscription subscription) {
         QuoteCancel message = new QuoteCancel();
         message.set(new QuoteReqID(subscription.requestId));
         message.set(new QuoteCancelType(QuoteCancelType.CANCEL_FOR_SYMBOL));
         sendTo(QUOTE_SESSION, message);
     }
 
-    @Override protected void sendOrder(Order order) {
+    @Override
+    public void trade(Order order) {
         NewOrderSingle message = new NewOrderSingle();
         message.set(new ClOrdID(order.id));
         String account = configuration.getString(TRADE_SESSION, "account");
@@ -136,8 +135,8 @@ public class Rbs extends FixLiquidityProvider {
     public void onMessage(quickfix.fix44.ExecutionReport message, SessionID sessionID) throws FieldNotFound, UnsupportedMessageType, IncorrectTagValue {
         String lpOrderId = message.getOrderID().getValue();
         String clOrderId = message.getClOrdID().getValue();
-        if (tradePromises.containsKey(clOrderId)) {
-            Order order = tradePromises.get(clOrderId).order;
+        if (orders.containsKey(clOrderId)) {
+            Order order = orders.get(clOrderId);
             char ordStatus = message.getOrdStatus().getValue();
             switch (ordStatus) {
                 case OrdStatus.NEW:
@@ -148,10 +147,12 @@ public class Rbs extends FixLiquidityProvider {
                     BigDecimal price = BigDecimal.valueOf(message.getPrice().getValue());
                     Trade trade = new Trade(lpOrderId, timestamp, order.instrument, order.side, order.amount, price);
                     onExecutionResponse(new ExecutionReport(lpOrderId, order, ExecutionReport.ExecutionStatus.FILLED, trade, null));
+                    orders.remove(clOrderId);
                     break;
                 case OrdStatus.REJECTED:
                     String text = message.isSetText() ? message.getText().getValue() : null;
                     onExecutionResponse(new ExecutionReport(lpOrderId, order, ExecutionReport.ExecutionStatus.REJECTED, null, text));
+                    orders.remove(clOrderId);
             }
         } else {
             processMessage(new Diagnostic(getName(), String.format("Execution report for unknown order received: %s", clOrderId)));

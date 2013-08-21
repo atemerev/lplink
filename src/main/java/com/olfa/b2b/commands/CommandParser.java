@@ -23,8 +23,6 @@ public class CommandParser {
             return null;
         } else {
             switch(tokens[0]) {
-                case "status":
-                    return new StatusCommand(liquidityManager, shell, tokens);
                 case "start":
                     return new StartCommand(liquidityManager, shell, tokens);
                 case "stop":

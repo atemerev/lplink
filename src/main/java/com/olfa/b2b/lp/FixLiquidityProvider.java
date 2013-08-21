@@ -4,8 +4,6 @@ import com.miriamlaurel.pms.Listener;
 import com.miriamlaurel.pms.listeners.MessageListener;
 import com.miriamlaurel.pms.listeners.MessageListenerDelegate;
 import com.miriamlaurel.pms.listeners.dispatch.DispatchListener;
-import com.miriamlaurel.prometheus.MementoPromise;
-import com.miriamlaurel.prometheus.Promise;
 import com.olfa.b2b.domain.*;
 import com.olfa.b2b.events.*;
 import com.olfa.b2b.exception.ConfigurationException;
@@ -27,11 +25,10 @@ public abstract class FixLiquidityProvider extends MessageCracker implements Liq
 
     private final MessageListener listener = new DispatchListener(this);
     private final MessageListenerDelegate notifier = new MessageListenerDelegate();
-    protected final ConcurrentMap<String, TradePromise> tradePromises = new ConcurrentHashMap<>();
     private final ConcurrentMap<SessionID, Boolean> sessionStatus = new ConcurrentHashMap<>();
-    private volatile Status<? extends LiquidityProvider> status;
     private ListeningPromise<Online<? extends LiquidityProvider>> connectionPromise;
     private ListeningPromise<Offline<? extends LiquidityProvider>> disconnectionPromise;
+    protected ConcurrentMap<String, Order> orders = new ConcurrentHashMap<>();
 
     private Initiator initiator;
 
@@ -39,7 +36,6 @@ public abstract class FixLiquidityProvider extends MessageCracker implements Liq
 
     protected FixLiquidityProvider(String name, @NotNull Config conf, @Nullable MessageListener listener) throws ConfigurationException {
         super();
-        this.status = new Offline<>(this, "Not yet started");
         if (listener != null) {
             notifier.listeners().add(listener);
         }
@@ -58,63 +54,37 @@ public abstract class FixLiquidityProvider extends MessageCracker implements Liq
         this(name, conf, null);
     }
 
-    // These methods are to be overridden for specific LP implementations
-
-    protected abstract void sendSubscribe(Subscription subscription);
-
-    protected abstract void sendUnsubscribe(Subscription subscription);
-
-    protected abstract void sendOrder(Order order);
-
     // These methods to be called by FIX message crackers
 
     @SuppressWarnings("unchecked")
     protected void onQuote(Quote quote) {
-        if (getStatus().isOnline()) {
-            Online<? extends FixLiquidityProvider> online = (Online<? extends FixLiquidityProvider>) getStatus();
-            online.touch();
-            notifier.processMessage(quote);
-        }
+        // todo change to MarketDataListener
+        notifier.processMessage(quote);
     }
 
     protected void onExecutionResponse(ExecutionReport report) {
-        TradePromise promise = tradePromises.get(report.order.id);
-        if (promise != null) {
-            promise.processMessage(report);
-            if (promise.isDone()) {
-                tradePromises.remove(report.order.id);
-            }
-        } else {
-            notifier.processMessage(new Diagnostic(getName(), String.format("Execution report for unknown order ID: %s", report.order.id)));
-        }
+        notifier.processMessage(report);
     }
 
     // Rest of implementation...
 
-    @Override public Promise<Online<? extends LiquidityProvider>> connect() {
+    void connect() {
         try {
             if (this.initiator == null) {
                 this.initiator = createInitiator();
             }
             this.connectionPromise = new ListeningPromise<>();
             initiator.start();
-            return connectionPromise;
         } catch (ConfigError e) {
             throw new ConfigurationException(e);
         }
     }
 
-    @Override public Promise<Offline<? extends LiquidityProvider>> disconnect() {
+    void disconnect() {
         this.disconnectionPromise = new ListeningPromise<>();
         // todo watch subscriptions, and unsubscribe if necessary
-//        unsubscribe();
         initiator.stop();
         initiator = null;
-        return disconnectionPromise;
-    }
-
-    @Override public Status<? extends LiquidityProvider> getStatus() {
-        return status;
     }
 
     protected void sendTo(String sessionName, Message message) throws RejectedException {
@@ -134,75 +104,87 @@ public abstract class FixLiquidityProvider extends MessageCracker implements Liq
         }
     }
 
-
-    @Override public String getName() {
+    @Override
+    public String getName() {
         return configuration.name;
     }
 
-    @Override public MementoPromise<Trade> trade(Order order) {
-        sendOrder(order);
-        TradePromise promise = new TradePromise(order);
-        tradePromises.put(order.id, promise);
-        return promise;
+    @Override
+    public void trade(Order order) {
+        orders.put(order.id, order);
+        // override this method to perform the actual trade
     }
 
     // QuickFIX Application interface that can be overridden if necessary
 
-    @Override public void onCreate(final SessionID sessionID) {
+    @Override
+    public void onCreate(final SessionID sessionID) {
         notifier.processMessage(new Diagnostic(getName(), "Session created: " + sessionID));
         Session.lookupSession(sessionID).addStateListener(new SessionStateListener() {
-            @Override public void onConnect() {
+            @Override
+            public void onConnect() {
                 notifier.processMessage(new Diagnostic(getName(), "Session connected: " + sessionID));
             }
 
-            @Override public void onDisconnect() {
+            @Override
+            public void onDisconnect() {
                 notifier.processMessage(new Diagnostic(getName(), "Session disconnected: " + sessionID));
             }
 
-            @Override public void onLogon() {
+            @Override
+            public void onLogon() {
                 notifier.processMessage(new Diagnostic(getName(), "Session logon: " + sessionID));
             }
 
-            @Override public void onLogout() {
+            @Override
+            public void onLogout() {
                 notifier.processMessage(new Diagnostic(getName(), "Session logout: " + sessionID));
             }
 
-            @Override public void onReset() {
+            @Override
+            public void onReset() {
                 notifier.processMessage(new Diagnostic(getName(), "Session reset: " + sessionID));
             }
 
-            @Override public void onRefresh() {
+            @Override
+            public void onRefresh() {
                 notifier.processMessage(new Diagnostic(getName(), "Session refreshed: " + sessionID));
             }
 
-            @Override public void onMissedHeartBeat() {
+            @Override
+            public void onMissedHeartBeat() {
                 notifier.processMessage(new Diagnostic(getName(), "Missed heartbeat: " + sessionID));
             }
 
-            @Override public void onHeartBeatTimeout() {
+            @Override
+            public void onHeartBeatTimeout() {
                 notifier.processMessage(new Diagnostic(getName(), "Heartbeat timeout: " + sessionID));
             }
         });
     }
 
-    @Override public void onLogon(SessionID sessionID) {
+    @Override
+    public void onLogon(SessionID sessionID) {
         if (!configuration.isSessionManaged(sessionID)) {
             processMessage(new Online<>(sessionID));
         }
     }
 
-    @Override public void onLogout(SessionID sessionID) {
+    @Override
+    public void onLogout(SessionID sessionID) {
         processMessage(new Offline<>(sessionID, "Session disconnected"));
     }
 
-    @Override public void toAdmin(Message message, SessionID sessionID) {
+    @Override
+    public void toAdmin(Message message, SessionID sessionID) {
     }
 
     @Override
     public void fromAdmin(Message message, SessionID sessionID) throws FieldNotFound, IncorrectDataFormat, IncorrectTagValue, RejectLogon {
     }
 
-    @Override public void toApp(Message message, SessionID sessionID) throws DoNotSend {
+    @Override
+    public void toApp(Message message, SessionID sessionID) throws DoNotSend {
     }
 
     @Override
@@ -210,11 +192,13 @@ public abstract class FixLiquidityProvider extends MessageCracker implements Liq
         crack(message, sessionID);
     }
 
-    @Override public void processMessage(Object o) {
+    @Override
+    public void processMessage(Object o) {
         listener.processMessage(o);
     }
 
-    @Listener public void $(Online<SessionID> online) {
+    @Listener
+    public void $(Online<SessionID> online) {
         sessionStatus.put(online.getSubject(), true);
         boolean allOnline = true;
         for (SessionID sessionID : sessionStatus.keySet()) {
@@ -225,49 +209,42 @@ public abstract class FixLiquidityProvider extends MessageCracker implements Liq
         }
         if (allOnline) {
             final Online<FixLiquidityProvider> status = new Online<>(this);
-            this.status = status;
             notifier.processMessage(status);
             connectionPromise.processMessage(status);
         }
     }
 
-    @Listener public void $(Offline<SessionID> offline) {
+    @Listener
+    public void $(Offline<SessionID> offline) {
         sessionStatus.put(offline.getSubject(), true);
         final Offline<FixLiquidityProvider> status = new Offline<>(this, offline.getReason());
-        this.status = status;
         notifier.processMessage(status);
         disconnectionPromise.processMessage(status);
     }
 
-    @Listener public void $(Reject<Subscription> reject) {
+    @Listener
+    public void $(Reject<Subscription> reject) {
         notifier.processMessage(new Offline<>(reject.request, reject.reason));
     }
 
-    @Override public String toString() {
+    @Override
+    public String toString() {
         return configuration.name.toUpperCase();
     }
 
     @Override
-    public Promise<Online<Subscription>> subscribe(Subscription subscription) {
-        return null;
-    }
-
-    @Override
-    public Promise<Offline<Subscription>> unsubscribe(Subscription subscription) {
-        return null;
-    }
-
-    @Override
-    public Status<Subscription> getSubscriptionStatus(Subscription subscription) {
-        return null;
-    }
-
-    @Override
     public void addStatusListener(StatusListener<? extends LiquidityProvider> listener) {
+        // todo implement
     }
 
     @Override
     public void addMarketDataListener(MarketDataListener listener) {
+        // todo implement
+    }
+
+    @Override
+    public void addTradeListener(ExecutionReportListener listener) {
+        // todo implement
     }
 
     private SocketInitiator createInitiator() throws ConfigError {

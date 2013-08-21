@@ -20,12 +20,7 @@ public class StopCommand implements Command {
 
     @Override public void run() {
         if (lpName != null) {
-            final Promise<Offline<? extends LiquidityProvider>> promise = liquidityManager.stop(lpName);
-            promise.append(new Runnable() {
-                @Override public void run() {
-                    shell.log(String.format("Liquidity provider %s is offline.", lpName.toUpperCase()));
-                }
-            });
+            // todo implement
         } else {
             shell.log("Please specify liquidity provider name to stop.");
         }

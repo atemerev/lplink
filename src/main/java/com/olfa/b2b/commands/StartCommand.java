@@ -25,17 +25,7 @@ public class StartCommand implements Command {
     @SuppressWarnings("unchecked")
     @Override public void run() {
         if (lpName != null) {
-            final Promise<Online<? extends LiquidityProvider>> promise = liquidityManager.start(lpName);
-            try {
-                Status<? extends LiquidityProvider> status = promise.get(5000);
-                if (status.isOnline()) {
-                    shell.log(String.format("Liquidity provider %s is online.", lpName.toUpperCase()));
-                }
-            } catch (Exception e) {
-                shell.log(String.format("Couldn't start %s due to timeout.", lpName.toUpperCase()));
-            }
-        } else {
-            shell.log("Please specify liquidity provider name to start.");
+            // todo implement
         }
     }
 }
