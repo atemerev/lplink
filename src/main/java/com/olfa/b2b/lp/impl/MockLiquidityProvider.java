@@ -3,8 +3,8 @@ package com.olfa.b2b.lp.impl;
 import com.olfa.b2b.domain.Order;
 import com.olfa.b2b.domain.Subscription;
 import com.olfa.b2b.events.ExecutionReportListener;
+import com.olfa.b2b.events.LpStatusListener;
 import com.olfa.b2b.events.MarketDataListener;
-import com.olfa.b2b.events.StatusListener;
 import com.olfa.b2b.lp.LiquidityProvider;
 
 public class MockLiquidityProvider implements LiquidityProvider {
@@ -26,7 +26,7 @@ public class MockLiquidityProvider implements LiquidityProvider {
     }
 
     @Override
-    public void addStatusListener(StatusListener<? extends LiquidityProvider> listener) {
+    public void addStatusListener(LpStatusListener listener) {
     }
 
     @Override

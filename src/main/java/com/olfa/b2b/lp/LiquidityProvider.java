@@ -9,7 +9,7 @@ public interface LiquidityProvider {
     void subscribe(Subscription subscription);
     void unsubscribe(Subscription subscription);
     void trade(Order order);
-    void addStatusListener(StatusListener<? extends LiquidityProvider> listener);
+    void addStatusListener(LpStatusListener listener);
     void addMarketDataListener(MarketDataListener listener);
     void addTradeListener(ExecutionReportListener listener);
 }

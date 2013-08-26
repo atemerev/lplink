@@ -1,11 +1,6 @@
 package com.olfa.b2b.commands;
 
-import com.miriamlaurel.prometheus.Promise;
 import com.olfa.b2b.LiquidityManager;
-import com.olfa.b2b.events.Offline;
-import com.olfa.b2b.events.Online;
-import com.olfa.b2b.events.Status;
-import com.olfa.b2b.lp.LiquidityProvider;
 import com.olfa.b2b.shell.Shell;
 
 import java.util.concurrent.TimeoutException;

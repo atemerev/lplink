@@ -1,18 +1,13 @@
 package com.olfa.b2b.lp.impl;
 
-import com.miriamlaurel.pms.listeners.MessageListener;
 import com.olfa.b2b.domain.*;
 import com.olfa.b2b.domain.ExecutionReport;
 import com.olfa.b2b.domain.Quote;
 import com.olfa.b2b.domain.Reject;
-import com.olfa.b2b.events.Diagnostic;
-import com.olfa.b2b.events.Offline;
-import com.olfa.b2b.events.Online;
+import com.olfa.b2b.events.StatusEvent;
 import com.olfa.b2b.exception.ConfigurationException;
 import com.olfa.b2b.lp.FixLiquidityProvider;
 import com.typesafe.config.Config;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import quickfix.FieldNotFound;
 import quickfix.IncorrectTagValue;
 import quickfix.Message;
@@ -34,10 +29,6 @@ public class Rbs extends FixLiquidityProvider {
     private static final String APPLICATION_PING_RESPONSE = "U2";
 
     private volatile Map<String, Subscription> subscriptions = Collections.unmodifiableMap(new HashMap<String, Subscription>());
-
-    public Rbs(@NotNull Config conf, @Nullable MessageListener listener) throws ConfigurationException {
-        super("rbs", conf, listener);
-    }
 
     public Rbs(Config conf) throws ConfigurationException {
         super("rbs", conf);
@@ -91,12 +82,7 @@ public class Rbs extends FixLiquidityProvider {
             throws FieldNotFound, UnsupportedMessageType, IncorrectTagValue {
         int status = message.getTradSesStatus().getValue();
         switch (status) {
-            case TradSesStatus.OPEN:
-                processMessage(new Online<>(sessionID));
-                break;
-            case TradSesStatus.CLOSED:
-                processMessage(new Offline<>(sessionID, String.format("LP %s: session %s is offline",
-                        getName(), sessionID.toString())));
+            // todo enable or disable session
         }
     }
 
@@ -108,7 +94,10 @@ public class Rbs extends FixLiquidityProvider {
         Map<String, Subscription> newSubscriptions = new HashMap<>(subscriptions);
         newSubscriptions.remove(requestId);
         this.subscriptions = newSubscriptions;
-        processMessage(new Reject<>(subscription, reason));
+        fireStatusEvent(new StatusEvent(
+                getName(),
+                "Subscription rejected: " + subscription,
+                StatusEvent.Type.SUBSCRIPTION_CANCELLED));
     }
 
     public void onMessage(quickfix.fix44.Quote message, SessionID sessionID) throws FieldNotFound, UnsupportedMessageType, IncorrectTagValue {
@@ -120,14 +109,14 @@ public class Rbs extends FixLiquidityProvider {
             final double offerPx = message.getOfferPx().getValue();
             boolean tradable = QuoteCondition.OPEN_ACTIVE.equals(message.getString(QuoteCondition.FIELD));
             if (tradable && bidPx > 0) {
-                onQuote(new Quote(Quote.Action.PUT, quoteId, subscription, Quote.Side.BID, requestId, null, bidPx));
+                fireQuote(new Quote(Quote.Action.PUT, quoteId, subscription, Quote.Side.BID, requestId, null, bidPx));
             } else {
-                onQuote(new Quote(Quote.Action.REMOVE, quoteId, subscription, Quote.Side.BID, requestId));
+                fireQuote(new Quote(Quote.Action.REMOVE, quoteId, subscription, Quote.Side.BID, requestId));
             }
             if (tradable && offerPx > 0) {
-                onQuote(new Quote(Quote.Action.PUT, quoteId, subscription, Quote.Side.ASK, requestId, null, offerPx));
+                fireQuote(new Quote(Quote.Action.PUT, quoteId, subscription, Quote.Side.ASK, requestId, null, offerPx));
             } else {
-                onQuote(new Quote(Quote.Action.REMOVE, quoteId, subscription, Quote.Side.ASK, requestId));
+                fireQuote(new Quote(Quote.Action.REMOVE, quoteId, subscription, Quote.Side.ASK, requestId));
             }
         }
     }
@@ -140,22 +129,22 @@ public class Rbs extends FixLiquidityProvider {
             char ordStatus = message.getOrdStatus().getValue();
             switch (ordStatus) {
                 case OrdStatus.NEW:
-                    onExecutionResponse(new ExecutionReport(lpOrderId, order, ExecutionReport.ExecutionStatus.NEW, null, null));
+                    fireExecutionReport(new ExecutionReport(lpOrderId, order, ExecutionReport.ExecutionStatus.NEW, null, null));
                     break;
                 case OrdStatus.FILLED:
                     long timestamp = message.getTransactTime().getValue().getTime();
                     BigDecimal price = BigDecimal.valueOf(message.getPrice().getValue());
                     Trade trade = new Trade(lpOrderId, timestamp, order.instrument, order.side, order.amount, price);
-                    onExecutionResponse(new ExecutionReport(lpOrderId, order, ExecutionReport.ExecutionStatus.FILLED, trade, null));
+                    fireExecutionReport(new ExecutionReport(lpOrderId, order, ExecutionReport.ExecutionStatus.FILLED, trade, null));
                     orders.remove(clOrderId);
                     break;
                 case OrdStatus.REJECTED:
                     String text = message.isSetText() ? message.getText().getValue() : null;
-                    onExecutionResponse(new ExecutionReport(lpOrderId, order, ExecutionReport.ExecutionStatus.REJECTED, null, text));
+                    fireExecutionReport(new ExecutionReport(lpOrderId, order, ExecutionReport.ExecutionStatus.REJECTED, null, text));
                     orders.remove(clOrderId);
             }
         } else {
-            processMessage(new Diagnostic(getName(), String.format("Execution report for unknown order received: %s", clOrderId)));
+            // todo log execution report for unknown order
         }
     }
 

@@ -1,69 +1,49 @@
 package com.olfa.b2b.lp;
 
-import com.miriamlaurel.pms.Listener;
-import com.miriamlaurel.pms.listeners.MessageListener;
-import com.miriamlaurel.pms.listeners.MessageListenerDelegate;
-import com.miriamlaurel.pms.listeners.dispatch.DispatchListener;
-import com.olfa.b2b.domain.*;
-import com.olfa.b2b.events.*;
+import com.olfa.b2b.domain.ExecutionReport;
+import com.olfa.b2b.domain.Order;
+import com.olfa.b2b.domain.Quote;
+import com.olfa.b2b.events.ExecutionReportListener;
+import com.olfa.b2b.events.LpStatusListener;
+import com.olfa.b2b.events.MarketDataListener;
+import com.olfa.b2b.events.StatusEvent;
 import com.olfa.b2b.exception.ConfigurationException;
 import com.olfa.b2b.exception.RejectedException;
 import com.olfa.b2b.lp.quickfix.FixLpConfiguration;
-import com.olfa.b2b.util.ListeningPromise;
 import com.typesafe.config.Config;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import quickfix.*;
 
+import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
 
-public abstract class FixLiquidityProvider extends MessageCracker implements LiquidityProvider, Application, MessageListener {
+public abstract class FixLiquidityProvider extends MessageCracker implements LiquidityProvider, Application {
 
     public static final String QUOTE_SESSION = "quote";
     public static final String TRADE_SESSION = "trade";
 
-    private final MessageListener listener = new DispatchListener(this);
-    private final MessageListenerDelegate notifier = new MessageListenerDelegate();
-    private final ConcurrentMap<SessionID, Boolean> sessionStatus = new ConcurrentHashMap<>();
-    private ListeningPromise<Online<? extends LiquidityProvider>> connectionPromise;
-    private ListeningPromise<Offline<? extends LiquidityProvider>> disconnectionPromise;
-    protected ConcurrentMap<String, Order> orders = new ConcurrentHashMap<>();
-
     private Initiator initiator;
-
+    protected ConcurrentMap<String, Order> orders = new ConcurrentHashMap<>();
+    protected ConcurrentMap<SessionID, Boolean> sessionStatus = new ConcurrentHashMap<>();
     protected final FixLpConfiguration configuration;
+    private final Queue<LpStatusListener> statusListeners = new ConcurrentLinkedQueue<>();
+    private final Queue<MarketDataListener> marketDataListeners = new ConcurrentLinkedQueue<>();
+    private final Queue<ExecutionReportListener> tradeListeners = new ConcurrentLinkedQueue<>();
 
-    protected FixLiquidityProvider(String name, @NotNull Config conf, @Nullable MessageListener listener) throws ConfigurationException {
+    protected FixLiquidityProvider(String name, @NotNull Config conf) throws ConfigurationException {
         super();
-        if (listener != null) {
-            notifier.listeners().add(listener);
-        }
         try {
             this.configuration = new FixLpConfiguration(name, conf, null);
             for (SessionID sid : configuration.sessionIDs.values()) {
                 sessionStatus.put(sid, false);
             }
             this.initiator = createInitiator();
+            connect();
         } catch (ConfigError configError) {
             throw new ConfigurationException(configError);
         }
-    }
-
-    protected FixLiquidityProvider(String name, @NotNull Config conf) {
-        this(name, conf, null);
-    }
-
-    // These methods to be called by FIX message crackers
-
-    @SuppressWarnings("unchecked")
-    protected void onQuote(Quote quote) {
-        // todo change to MarketDataListener
-        notifier.processMessage(quote);
-    }
-
-    protected void onExecutionResponse(ExecutionReport report) {
-        notifier.processMessage(report);
     }
 
     // Rest of implementation...
@@ -73,7 +53,6 @@ public abstract class FixLiquidityProvider extends MessageCracker implements Liq
             if (this.initiator == null) {
                 this.initiator = createInitiator();
             }
-            this.connectionPromise = new ListeningPromise<>();
             initiator.start();
         } catch (ConfigError e) {
             throw new ConfigurationException(e);
@@ -81,10 +60,10 @@ public abstract class FixLiquidityProvider extends MessageCracker implements Liq
     }
 
     void disconnect() {
-        this.disconnectionPromise = new ListeningPromise<>();
         // todo watch subscriptions, and unsubscribe if necessary
         initiator.stop();
         initiator = null;
+        // todo notify the failure listener
     }
 
     protected void sendTo(String sessionName, Message message) throws RejectedException {
@@ -119,60 +98,50 @@ public abstract class FixLiquidityProvider extends MessageCracker implements Liq
 
     @Override
     public void onCreate(final SessionID sessionID) {
-        notifier.processMessage(new Diagnostic(getName(), "Session created: " + sessionID));
         Session.lookupSession(sessionID).addStateListener(new SessionStateListener() {
             @Override
             public void onConnect() {
-                notifier.processMessage(new Diagnostic(getName(), "Session connected: " + sessionID));
             }
 
             @Override
             public void onDisconnect() {
-                notifier.processMessage(new Diagnostic(getName(), "Session disconnected: " + sessionID));
+                // todo disconnect all sessions, fail
             }
 
             @Override
             public void onLogon() {
-                notifier.processMessage(new Diagnostic(getName(), "Session logon: " + sessionID));
+                // todo release start countdown latch
             }
 
             @Override
             public void onLogout() {
-                notifier.processMessage(new Diagnostic(getName(), "Session logout: " + sessionID));
+                // todo disconnect all sessions, fail
             }
 
             @Override
             public void onReset() {
-                notifier.processMessage(new Diagnostic(getName(), "Session reset: " + sessionID));
             }
 
             @Override
             public void onRefresh() {
-                notifier.processMessage(new Diagnostic(getName(), "Session refreshed: " + sessionID));
             }
 
             @Override
             public void onMissedHeartBeat() {
-                notifier.processMessage(new Diagnostic(getName(), "Missed heartbeat: " + sessionID));
             }
 
             @Override
             public void onHeartBeatTimeout() {
-                notifier.processMessage(new Diagnostic(getName(), "Heartbeat timeout: " + sessionID));
             }
         });
     }
 
     @Override
     public void onLogon(SessionID sessionID) {
-        if (!configuration.isSessionManaged(sessionID)) {
-            processMessage(new Online<>(sessionID));
-        }
     }
 
     @Override
     public void onLogout(SessionID sessionID) {
-        processMessage(new Offline<>(sessionID, "Session disconnected"));
     }
 
     @Override
@@ -192,14 +161,8 @@ public abstract class FixLiquidityProvider extends MessageCracker implements Liq
         crack(message, sessionID);
     }
 
-    @Override
-    public void processMessage(Object o) {
-        listener.processMessage(o);
-    }
-
-    @Listener
-    public void $(Online<SessionID> online) {
-        sessionStatus.put(online.getSubject(), true);
+    private void onSessionOnline(SessionID sid) {
+        sessionStatus.put(sid, true);
         boolean allOnline = true;
         for (SessionID sessionID : sessionStatus.keySet()) {
             if (!sessionStatus.get(sessionID)) {
@@ -208,23 +171,13 @@ public abstract class FixLiquidityProvider extends MessageCracker implements Liq
             }
         }
         if (allOnline) {
-            final Online<FixLiquidityProvider> status = new Online<>(this);
-            notifier.processMessage(status);
-            connectionPromise.processMessage(status);
+            // todo release startup latch
         }
     }
 
-    @Listener
-    public void $(Offline<SessionID> offline) {
-        sessionStatus.put(offline.getSubject(), true);
-        final Offline<FixLiquidityProvider> status = new Offline<>(this, offline.getReason());
-        notifier.processMessage(status);
-        disconnectionPromise.processMessage(status);
-    }
+    private void onSessionOffline(SessionID sid) {
+        initiator.stop();
 
-    @Listener
-    public void $(Reject<Subscription> reject) {
-        notifier.processMessage(new Offline<>(reject.request, reject.reason));
     }
 
     @Override
@@ -233,18 +186,36 @@ public abstract class FixLiquidityProvider extends MessageCracker implements Liq
     }
 
     @Override
-    public void addStatusListener(StatusListener<? extends LiquidityProvider> listener) {
-        // todo implement
+    public void addStatusListener(LpStatusListener listener) {
+        statusListeners.add(listener);
     }
 
     @Override
     public void addMarketDataListener(MarketDataListener listener) {
-        // todo implement
+        marketDataListeners.add(listener);
     }
 
     @Override
     public void addTradeListener(ExecutionReportListener listener) {
-        // todo implement
+        tradeListeners.add(listener);
+    }
+
+    protected void fireStatusEvent(StatusEvent event) {
+        for (LpStatusListener listener : statusListeners) {
+            listener.onStatusEvent(event);
+        }
+    }
+
+    protected void fireQuote(Quote quote) {
+        for (MarketDataListener listener : marketDataListeners) {
+            listener.onQuote(quote);
+        }
+    }
+
+    protected void fireExecutionReport(ExecutionReport report) {
+        for (ExecutionReportListener listener : tradeListeners) {
+            listener.onExecutionReport(report);
+        }
     }
 
     private SocketInitiator createInitiator() throws ConfigError {

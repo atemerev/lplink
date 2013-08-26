@@ -1,9 +1,6 @@
 package com.olfa.b2b;
 
-import com.miriamlaurel.prometheus.Promise;
 import com.olfa.b2b.domain.Subscription;
-import com.olfa.b2b.events.Offline;
-import com.olfa.b2b.events.Online;
 import com.olfa.b2b.exception.ConfigurationException;
 import com.olfa.b2b.exception.LifecycleException;
 import com.olfa.b2b.exception.ValidationException;
