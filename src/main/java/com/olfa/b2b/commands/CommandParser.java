@@ -1,15 +1,15 @@
 package com.olfa.b2b.commands;
 
-import com.olfa.b2b.LiquidityManager;
+import com.olfa.b2b.lp.SubscriptionMonitor;
 import com.olfa.b2b.shell.Shell;
 import org.jetbrains.annotations.Nullable;
 
 public class CommandParser {
 
-    private final LiquidityManager liquidityManager;
+    private final SubscriptionMonitor liquidityManager;
     private final Shell shell;
 
-    public CommandParser(LiquidityManager liquidityManager, Shell shell) {
+    public CommandParser(SubscriptionMonitor liquidityManager, Shell shell) {
         this.liquidityManager = liquidityManager;
         this.shell = shell;
     }
@@ -23,14 +23,15 @@ public class CommandParser {
             return null;
         } else {
             switch(tokens[0]) {
+                // todo fix commands
                 case "start":
-                    return new StartCommand(liquidityManager, shell, tokens);
+//                    return new StartCommand(liquidityManager, shell, tokens);
                 case "stop":
-                    return new StopCommand(liquidityManager, shell, tokens);
+//                    return new StopCommand(liquidityManager, shell, tokens);
                 case "restart":
-                    return new RestartCommand(liquidityManager, shell, tokens);
+//                    return new RestartCommand(liquidityManager, shell, tokens);
                 case "market":
-                    return new MarketCommand(liquidityManager.subscriptionMonitor, shell, tokens);
+//                    return new MarketCommand(liquidityManager.subscriptionMonitor, shell, tokens);
                 default:
                     return null;
             }

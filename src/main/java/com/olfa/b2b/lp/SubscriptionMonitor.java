@@ -5,7 +5,12 @@ import com.olfa.b2b.domain.Quote;
 import com.olfa.b2b.events.LpStatusListener;
 import com.olfa.b2b.events.MarketDataListener;
 import com.olfa.b2b.events.StatusEvent;
+import com.olfa.b2b.exception.ConfigurationException;
+import com.olfa.b2b.exception.NotImplementedException;
+import com.olfa.b2b.exception.ValidationException;
+import com.typesafe.config.Config;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -19,10 +24,13 @@ public class SubscriptionMonitor implements MarketDataListener {
     private final Timer timer = new Timer(true);
 
     public final Set<Subscription> subscriptions;
+    public final Map<String, LiquidityProvider> liquidityProviders;
+
     private final Queue<LpStatusListener> statusListeners = new ConcurrentLinkedQueue<>();
 
     public SubscriptionMonitor(Set<Subscription> subscriptions, long tick, long timeout) {
-        this.subscriptions = subscriptions;
+        this.subscriptions = new HashSet<>(subscriptions);
+        this.liquidityProviders = new HashMap<>();
         this.timeout = timeout;
         timer.schedule(new TimerTask() {
             @Override
@@ -72,6 +80,26 @@ public class SubscriptionMonitor implements MarketDataListener {
         }
     }
 
+    public void subscribe(Subscription subscription) throws ValidationException {
+        if (!isOnline(subscription)) {
+            LiquidityProvider lp = getOrCreateLiquidityProvider(subscription.source);
+            lp.subscribe(subscription);
+        }
+    }
+
+    public void unsubscribe(Subscription subscription) throws ValidationException {
+        if (isOnline(subscription)) {
+            LiquidityProvider lp = getOrCreateLiquidityProvider(subscription.source);
+            lp.unsubscribe(subscription);
+        }
+    }
+
+    public void start() {
+        // todo: send subscription requests to corresponding liquidity providers
+        // todo: start monitoring
+        // todo: handle rejects and status change events
+    }
+
     public void stop() {
         timer.cancel();
     }
@@ -83,6 +111,35 @@ public class SubscriptionMonitor implements MarketDataListener {
     @Override protected void finalize() throws Throwable {
         super.finalize();
         stop();
+    }
+
+    private LiquidityProvider getOrCreateLiquidityProvider(String lpName) {
+        LiquidityProvider lp = liquidityProviders.get(lpName);
+        if (lp == null)  {
+            lp = startLiquidityProvider(lpName);
+            liquidityProviders.put(lpName, lp);
+        }
+        return lp;
+    }
+
+    @SuppressWarnings("unchecked")
+    private LiquidityProvider startLiquidityProvider(String lpName) {
+        try {
+            Config lpConfig = getLpConfig(lpName);
+            Class<? extends LiquidityProvider> lpClass = (Class<? extends LiquidityProvider>) Class.forName(lpConfig.getString("implementation"));
+            return lpClass.getConstructor(Config.class).newInstance(lpConfig);
+        } catch (ClassNotFoundException |
+                 NoSuchMethodException |
+                 InvocationTargetException |
+                 IllegalAccessException |
+                 InstantiationException e) {
+            throw new ConfigurationException(e);
+        }
+    }
+
+    private Config getLpConfig(String lpName) {
+        // todo implement
+        throw new NotImplementedException();
     }
 
     private void touch(Subscription subscription) {
