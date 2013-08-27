@@ -1,56 +1,59 @@
 package com.olfa.b2b.lp;
 
-import com.miriamlaurel.pms.Listener;
-import com.miriamlaurel.pms.listeners.HasMessageListeners;
-import com.miriamlaurel.pms.listeners.MessageListener;
-import com.miriamlaurel.pms.listeners.MessageListenerDelegate;
-import com.miriamlaurel.pms.listeners.dispatch.DispatchListener;
 import com.olfa.b2b.domain.Subscription;
 import com.olfa.b2b.domain.Quote;
+import com.olfa.b2b.events.LpStatusListener;
+import com.olfa.b2b.events.MarketDataListener;
 import com.olfa.b2b.events.StatusEvent;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
-public class SubscriptionMonitor extends DispatchListener implements HasMessageListeners {
+public class SubscriptionMonitor implements MarketDataListener {
 
     private final long timeout;
 
-    private final MessageListenerDelegate delegate = new MessageListenerDelegate();
     private final Map<Subscription, Long> lastUpdateTimes = new ConcurrentHashMap<>();
 
     private final Timer timer = new Timer(true);
 
     public final Set<Subscription> subscriptions;
+    private final Queue<LpStatusListener> statusListeners = new ConcurrentLinkedQueue<>();
 
     public SubscriptionMonitor(Set<Subscription> subscriptions, long tick, long timeout) {
         this.subscriptions = subscriptions;
         this.timeout = timeout;
         timer.schedule(new TimerTask() {
-            @Override public void run() {
-                processMessage(new Tick(System.currentTimeMillis()));
+            @Override
+            public void run() {
+                onTick(new Tick(System.currentTimeMillis()));
             }
         }, 0, tick);
     }
 
-    @Listener void $(Quote quote) {
+    public void onQuote(Quote quote) {
         Subscription subscription = quote.subscription;
         if (!isOnline(subscription)) {
-            delegate.processMessage(new StatusEvent(
-                    quote.subscription.source,
-                    "Quotes appeared on " + quote.subscription,
-                    StatusEvent.Type.SUBSCRIPTION_ONLINE));
+            for (LpStatusListener listener : statusListeners) {
+                listener.onStatusEvent(new StatusEvent(
+                        quote.subscription.source,
+                        "Quotes appeared on " + quote.subscription,
+                        StatusEvent.Type.SUBSCRIPTION_ONLINE));
+            }
         }
         touch(subscription);
     }
 
-    @Listener void $(Tick tick) {
+    public void onTick(Tick tick) {
         for (Subscription subscription : lastUpdateTimes.keySet()) {
             if (!isOnline(subscription)) {
-                delegate.processMessage(new StatusEvent(
-                        subscription.source,
-                        "Feed timeout on " + subscription,
-                        StatusEvent.Type.SUBSCRIPTION_TIMEOUT));
+                for (LpStatusListener listener : statusListeners) {
+                    listener.onStatusEvent(new StatusEvent(
+                            subscription.source,
+                            "Feed timeout on " + subscription,
+                            StatusEvent.Type.SUBSCRIPTION_TIMEOUT));
+                }
             }
         }
     }
@@ -59,10 +62,6 @@ public class SubscriptionMonitor extends DispatchListener implements HasMessageL
         final Long lastUpdate = lastUpdateTimes.get(subscription);
         final long now = System.currentTimeMillis();
         return lastUpdate != null && now <= lastUpdate + timeout;
-    }
-
-    @Override public List<MessageListener> listeners() {
-        return delegate.listeners();
     }
 
     class Tick {
@@ -75,6 +74,10 @@ public class SubscriptionMonitor extends DispatchListener implements HasMessageL
 
     public void stop() {
         timer.cancel();
+    }
+
+    public void addStatusListener(LpStatusListener listener) {
+        statusListeners.add(listener);
     }
 
     @Override protected void finalize() throws Throwable {

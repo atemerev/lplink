@@ -8,8 +8,9 @@ public class StatusEvent {
 
     public enum Type {
         DISCONNECTED,
+        TRADING_SESSION_OFFLINE,
+        TRADING_SESSION_ONLINE,
         SUBSCRIPTION_CANCELLED,
-        TRADING_SESSION_STATUS_CHANGED,
         SUBSCRIPTION_TIMEOUT,
         SUBSCRIPTION_ONLINE
     }
