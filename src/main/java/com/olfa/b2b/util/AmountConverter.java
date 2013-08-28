@@ -20,7 +20,7 @@ public class AmountConverter {
             } else if ("m".equalsIgnoreCase(multiplierString)) {
                 return amount * 1000000;
             } else {
-                throw new IllegalArgumentException("Only K and M multiplers are supported");
+                throw new IllegalArgumentException("Only K and M multipliers are supported");
             }
         } else {
             throw new IllegalArgumentException("Can't match brief: " + brief);

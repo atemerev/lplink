@@ -8,6 +8,7 @@ import com.olfa.b2b.events.LpStatusListener;
 import com.olfa.b2b.events.MarketDataListener;
 import com.olfa.b2b.events.StatusEvent;
 import com.olfa.b2b.exception.ConfigurationException;
+import com.olfa.b2b.exception.LifecycleException;
 import com.olfa.b2b.exception.RejectedException;
 import com.olfa.b2b.lp.quickfix.FixLpConfiguration;
 import com.typesafe.config.Config;
@@ -18,15 +19,17 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CountDownLatch;
 
 public abstract class FixLiquidityProvider extends MessageCracker implements LiquidityProvider, Application {
 
     public static final String QUOTE_SESSION = "quote";
     public static final String TRADE_SESSION = "trade";
 
-    private Initiator initiator;
-    protected ConcurrentMap<String, Order> orders = new ConcurrentHashMap<>();
-    protected ConcurrentMap<SessionID, Boolean> sessionStatus = new ConcurrentHashMap<>();
+    private final CountDownLatch startupLatch = new CountDownLatch(1);
+    private final Initiator initiator;
+    protected final ConcurrentMap<String, Order> orders = new ConcurrentHashMap<>();
+    protected final ConcurrentMap<SessionID, Boolean> sessionStatus = new ConcurrentHashMap<>();
     protected final FixLpConfiguration configuration;
     private final Queue<LpStatusListener> statusListeners = new ConcurrentLinkedQueue<>();
     private final Queue<MarketDataListener> marketDataListeners = new ConcurrentLinkedQueue<>();
@@ -40,30 +43,19 @@ public abstract class FixLiquidityProvider extends MessageCracker implements Liq
                 sessionStatus.put(sid, false);
             }
             this.initiator = createInitiator();
-            connect();
+            initiator.start();
+            startupLatch.await();
         } catch (ConfigError configError) {
             throw new ConfigurationException(configError);
-        }
-    }
-
-    // Rest of implementation...
-
-    void connect() {
-        try {
-            if (this.initiator == null) {
-                this.initiator = createInitiator();
-            }
-            initiator.start();
-        } catch (ConfigError e) {
-            throw new ConfigurationException(e);
+        } catch (InterruptedException e) {
+            throw new LifecycleException("Interrupted");
         }
     }
 
     void disconnect() {
-        // todo watch subscriptions, and unsubscribe if necessary
         initiator.stop();
-        initiator = null;
-        // todo notify the failure listener
+        fireStatusEvent(new StatusEvent(getName(),
+                String.format("LP %s has been stopped", getName()), StatusEvent.Type.DISCONNECTED));
     }
 
     protected void sendTo(String sessionName, Message message) throws RejectedException {
@@ -105,17 +97,16 @@ public abstract class FixLiquidityProvider extends MessageCracker implements Liq
 
             @Override
             public void onDisconnect() {
-                // todo disconnect all sessions, fail
+                disconnect();
             }
 
             @Override
             public void onLogon() {
-                // todo release start countdown latch
             }
 
             @Override
             public void onLogout() {
-                // todo disconnect all sessions, fail
+                disconnect();
             }
 
             @Override
@@ -138,6 +129,7 @@ public abstract class FixLiquidityProvider extends MessageCracker implements Liq
 
     @Override
     public void onLogon(SessionID sessionID) {
+        onSessionOnline(sessionID);
     }
 
     @Override
@@ -171,13 +163,8 @@ public abstract class FixLiquidityProvider extends MessageCracker implements Liq
             }
         }
         if (allOnline) {
-            // todo release startup latch
+            startupLatch.countDown();
         }
-    }
-
-    private void onSessionOffline(SessionID sid) {
-        initiator.stop();
-
     }
 
     @Override
