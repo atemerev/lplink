@@ -94,15 +94,17 @@ public abstract class FixLiquidityProvider extends MessageCracker implements Liq
         doUnsubscribe(subscription);
     }
 
+    @Override
+    public void trade(Order order) {
+        orders.put(order.id, order);
+        doTrade(order);
+    }
+
     public abstract void doSubscribe(Subscription subscription);
 
     public abstract void doUnsubscribe(Subscription subscription);
 
-    @Override
-    public void trade(Order order) {
-        orders.put(order.id, order);
-        // override this method to perform the actual trade
-    }
+    public abstract void doTrade(Order order);
 
     // QuickFIX Application interface that can be overridden if necessary
 

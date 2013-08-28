@@ -50,7 +50,7 @@ public class Rbs extends FixLiquidityProvider {
     }
 
     @Override
-    public void trade(Order order) {
+    public void doTrade(Order order) {
         NewOrderSingle message = new NewOrderSingle();
         message.set(new ClOrdID(order.id));
         String account = configuration.getString(TRADE_SESSION, "account");
