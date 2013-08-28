@@ -3,6 +3,7 @@ package com.olfa.b2b.lp;
 import com.olfa.b2b.domain.ExecutionReport;
 import com.olfa.b2b.domain.Order;
 import com.olfa.b2b.domain.Quote;
+import com.olfa.b2b.domain.Subscription;
 import com.olfa.b2b.events.ExecutionReportListener;
 import com.olfa.b2b.events.LpStatusListener;
 import com.olfa.b2b.events.MarketDataListener;
@@ -28,6 +29,7 @@ public abstract class FixLiquidityProvider extends MessageCracker implements Liq
 
     private final CountDownLatch startupLatch = new CountDownLatch(1);
     private final Initiator initiator;
+    protected final ConcurrentMap<String, Subscription> subscriptions = new ConcurrentHashMap<>();
     protected final ConcurrentMap<String, Order> orders = new ConcurrentHashMap<>();
     protected final ConcurrentMap<SessionID, Boolean> sessionStatus = new ConcurrentHashMap<>();
     protected final FixLpConfiguration configuration;
@@ -81,6 +83,22 @@ public abstract class FixLiquidityProvider extends MessageCracker implements Liq
     }
 
     @Override
+    public void subscribe(Subscription subscription) {
+        subscriptions.put(subscription.requestId, subscription);
+        doSubscribe(subscription);
+    }
+
+    @Override
+    public void unsubscribe(Subscription subscription) {
+        subscriptions.remove(subscription.requestId);
+        doUnsubscribe(subscription);
+    }
+
+    public abstract void doSubscribe(Subscription subscription);
+
+    public abstract void doUnsubscribe(Subscription subscription);
+
+    @Override
     public void trade(Order order) {
         orders.put(order.id, order);
         // override this method to perform the actual trade
@@ -106,7 +124,6 @@ public abstract class FixLiquidityProvider extends MessageCracker implements Liq
 
             @Override
             public void onLogout() {
-                disconnect();
             }
 
             @Override
@@ -134,6 +151,7 @@ public abstract class FixLiquidityProvider extends MessageCracker implements Liq
 
     @Override
     public void onLogout(SessionID sessionID) {
+        disconnect();
     }
 
     @Override

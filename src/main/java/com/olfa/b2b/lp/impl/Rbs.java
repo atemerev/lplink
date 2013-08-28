@@ -3,7 +3,6 @@ package com.olfa.b2b.lp.impl;
 import com.olfa.b2b.domain.*;
 import com.olfa.b2b.domain.ExecutionReport;
 import com.olfa.b2b.domain.Quote;
-import com.olfa.b2b.domain.Reject;
 import com.olfa.b2b.events.StatusEvent;
 import com.olfa.b2b.exception.ConfigurationException;
 import com.olfa.b2b.lp.FixLiquidityProvider;
@@ -18,23 +17,18 @@ import quickfix.field.Side;
 import quickfix.fix44.*;
 
 import java.math.BigDecimal;
-import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 public class Rbs extends FixLiquidityProvider {
 
     private static final String APPLICATION_PING_REQUEST = "U1";
     private static final String APPLICATION_PING_RESPONSE = "U2";
 
-    private volatile Map<String, Subscription> subscriptions = Collections.unmodifiableMap(new HashMap<String, Subscription>());
-
     public Rbs(Config conf) throws ConfigurationException {
         super("rbs", conf);
     }
 
-    public void subscribe(Subscription subscription) {
+    public void doSubscribe(Subscription subscription) {
         QuoteRequest message = new QuoteRequest();
         message.set(new QuoteReqID(subscription.requestId));
         message.setString(Symbol.FIELD, subscription.instrument.toString());
@@ -48,7 +42,7 @@ public class Rbs extends FixLiquidityProvider {
         sendTo(QUOTE_SESSION, message);
     }
 
-    public void unsubscribe(Subscription subscription) {
+    public void doUnsubscribe(Subscription subscription) {
         QuoteCancel message = new QuoteCancel();
         message.set(new QuoteReqID(subscription.requestId));
         message.set(new QuoteCancelType(QuoteCancelType.CANCEL_FOR_SYMBOL));
@@ -82,29 +76,32 @@ public class Rbs extends FixLiquidityProvider {
             throws FieldNotFound, UnsupportedMessageType, IncorrectTagValue {
         int status = message.getTradSesStatus().getValue();
         switch (status) {
-            // todo enable or disable session
+            case TradSesStatus.OPEN:
+                fireStatusEvent(new StatusEvent(getName(), "Trading session is now open", StatusEvent.Type.TRADING_SESSION_ONLINE));
+                break;
+            case TradSesStatus.CLOSED:
+                fireStatusEvent(new StatusEvent(getName(), "Trading session is now closed", StatusEvent.Type.TRADING_SESSION_OFFLINE));
+                break;
+            default:
+                // todo: log
         }
     }
 
     public void onMessage(QuoteRequestReject message, SessionID sessionID) throws FieldNotFound, UnsupportedMessageType, IncorrectTagValue {
         String requestId = message.getQuoteReqID().getValue();
         int code = message.getQuoteRequestRejectReason().getValue();
-        String reason = message.isSetText() ? message.getText().getValue() : String.format("Request rejected: %d", code);
-        Subscription subscription = this.subscriptions.get(requestId);
-        Map<String, Subscription> newSubscriptions = new HashMap<>(subscriptions);
-        newSubscriptions.remove(requestId);
-        this.subscriptions = newSubscriptions;
+        String reason = message.isSetText() ? message.getText().getValue() : String.format("Request %s rejected: %d", requestId, code);
         fireStatusEvent(new StatusEvent(
                 getName(),
-                "Subscription rejected: " + subscription,
+                reason,
                 StatusEvent.Type.SUBSCRIPTION_CANCELLED));
     }
 
     public void onMessage(quickfix.fix44.Quote message, SessionID sessionID) throws FieldNotFound, UnsupportedMessageType, IncorrectTagValue {
-        String requestId = message.getQuoteReqID().getValue();
-        Subscription subscription = subscriptions.get(requestId);
+        final String requestId = message.getQuoteReqID().getValue();
+        final String quoteId = message.getQuoteID().getValue();
+        final Subscription subscription = subscriptions.get(requestId);
         if (subscription != null) {
-            String quoteId = message.getQuoteID().getValue();
             final double bidPx = message.getBidPx().getValue();
             final double offerPx = message.getOfferPx().getValue();
             boolean tradable = QuoteCondition.OPEN_ACTIVE.equals(message.getString(QuoteCondition.FIELD));
