@@ -145,7 +145,6 @@ public class Rbs extends FixLiquidityProvider {
         }
     }
 
-    @Override
     public void onMessage(Message message, SessionID sid) throws FieldNotFound, UnsupportedMessageType, IncorrectTagValue {
         String msgType = message.getHeader().getString(MsgType.FIELD);
         if (APPLICATION_PING_REQUEST.equals(msgType)) {
@@ -156,8 +155,6 @@ public class Rbs extends FixLiquidityProvider {
             pong.setString(TestReqID.FIELD, reqId);
             pong.setUtcTimeStamp(TransactTime.FIELD, new Date(time));
             sendTo(sid, pong);
-        } else {
-            super.onMessage(message, sid);
         }
     }
 }

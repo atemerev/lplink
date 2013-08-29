@@ -1,12 +1,7 @@
 package com.olfa.b2b.lp;
 
-import com.olfa.b2b.domain.ExecutionReport;
 import com.olfa.b2b.domain.Order;
-import com.olfa.b2b.domain.Quote;
 import com.olfa.b2b.domain.Subscription;
-import com.olfa.b2b.events.ExecutionReportListener;
-import com.olfa.b2b.events.LpStatusListener;
-import com.olfa.b2b.events.MarketDataListener;
 import com.olfa.b2b.events.StatusEvent;
 import com.olfa.b2b.exception.ConfigurationException;
 import com.olfa.b2b.exception.LifecycleException;
@@ -16,26 +11,22 @@ import com.typesafe.config.Config;
 import org.jetbrains.annotations.NotNull;
 import quickfix.*;
 
-import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountDownLatch;
 
-public abstract class FixLiquidityProvider extends MessageCracker implements LiquidityProvider, Application {
+public abstract class FixLiquidityProvider extends AbstractLiquidityProvider implements Application {
 
     public static final String QUOTE_SESSION = "quote";
     public static final String TRADE_SESSION = "trade";
 
     private final CountDownLatch startupLatch = new CountDownLatch(1);
     private final Initiator initiator;
+    private final MessageCracker cracker;
     protected final ConcurrentMap<String, Subscription> subscriptions = new ConcurrentHashMap<>();
     protected final ConcurrentMap<String, Order> orders = new ConcurrentHashMap<>();
     protected final ConcurrentMap<SessionID, Boolean> sessionStatus = new ConcurrentHashMap<>();
     protected final FixLpConfiguration configuration;
-    private final Queue<LpStatusListener> statusListeners = new ConcurrentLinkedQueue<>();
-    private final Queue<MarketDataListener> marketDataListeners = new ConcurrentLinkedQueue<>();
-    private final Queue<ExecutionReportListener> tradeListeners = new ConcurrentLinkedQueue<>();
 
     protected FixLiquidityProvider(String name, @NotNull Config conf) throws ConfigurationException {
         super();
@@ -45,6 +36,7 @@ public abstract class FixLiquidityProvider extends MessageCracker implements Liq
                 sessionStatus.put(sid, false);
             }
             this.initiator = createInitiator();
+            this.cracker = new MessageCracker(this);
             initiator.start();
             startupLatch.await();
         } catch (ConfigError configError) {
@@ -170,7 +162,7 @@ public abstract class FixLiquidityProvider extends MessageCracker implements Liq
 
     @Override
     public void fromApp(Message message, SessionID sessionID) throws FieldNotFound, IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType {
-        crack(message, sessionID);
+        cracker.crack(message, sessionID);
     }
 
     private void onSessionOnline(SessionID sid) {
@@ -190,39 +182,6 @@ public abstract class FixLiquidityProvider extends MessageCracker implements Liq
     @Override
     public String toString() {
         return configuration.name.toUpperCase();
-    }
-
-    @Override
-    public void addStatusListener(LpStatusListener listener) {
-        statusListeners.add(listener);
-    }
-
-    @Override
-    public void addMarketDataListener(MarketDataListener listener) {
-        marketDataListeners.add(listener);
-    }
-
-    @Override
-    public void addTradeListener(ExecutionReportListener listener) {
-        tradeListeners.add(listener);
-    }
-
-    protected void fireStatusEvent(StatusEvent event) {
-        for (LpStatusListener listener : statusListeners) {
-            listener.onStatusEvent(event);
-        }
-    }
-
-    protected void fireQuote(Quote quote) {
-        for (MarketDataListener listener : marketDataListeners) {
-            listener.onQuote(quote);
-        }
-    }
-
-    protected void fireExecutionReport(ExecutionReport report) {
-        for (ExecutionReportListener listener : tradeListeners) {
-            listener.onExecutionReport(report);
-        }
     }
 
     private SocketInitiator createInitiator() throws ConfigError {
