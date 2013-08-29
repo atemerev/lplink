@@ -40,6 +40,13 @@ public class Rbs extends FixLiquidityProvider {
         group.set(new SettlType(SettlType.REGULAR));
         message.addGroup(group);
         sendTo(QUOTE_SESSION, message);
+        /*
+         FIX44.QuoteRequest(
+             FIX44.QuoteReqID(subscription.requestId),
+             FIX44.Symbol(subscription.instrument.toString()),
+             FIX44.Group(FIX44.NoRelatedSym, FIX44.OrderQty(subscription.amount), FIX44.SettlType.REGULAR));
+
+        */
     }
 
     public void doUnsubscribe(Subscription subscription) {
