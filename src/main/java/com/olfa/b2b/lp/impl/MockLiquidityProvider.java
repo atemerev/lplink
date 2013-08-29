@@ -45,7 +45,7 @@ public class MockLiquidityProvider extends AbstractLiquidityProvider {
                     latch.countDown();
                 }
             }
-        }, 1000, 1000);
+        }, 150, 150);
         try {
             latch.await();
         } catch (InterruptedException e) {
@@ -62,16 +62,12 @@ public class MockLiquidityProvider extends AbstractLiquidityProvider {
     public void subscribe(Subscription subscription) {
         assert getName().equals(subscription.source);
         subscriptions.put(subscription.instrument, subscription);
-        currentBids.put(subscription.instrument, null);
-        currentAsks.put(subscription.instrument, null);
     }
 
     @Override
     public void unsubscribe(Subscription subscription) {
         assert getName().equals(subscription.source);
         subscriptions.remove(subscription.instrument);
-        currentBids.remove(subscription.instrument);
-        currentAsks.remove(subscription.instrument);
     }
 
     @Override
