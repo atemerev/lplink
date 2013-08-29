@@ -89,6 +89,15 @@ public class MockLiquidityProvider extends AbstractLiquidityProvider {
                     "Mock execution OK"
             );
             fireExecutionReport(report);
+        } else {
+            ExecutionReport report = new ExecutionReport(
+                    getName(),
+                    order,
+                    ExecutionReport.ExecutionStatus.REJECTED,
+                    null,
+                    "No quote found"
+            );
+            fireExecutionReport(report);
         }
     }
 
