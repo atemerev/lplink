@@ -87,7 +87,7 @@ public class LpBasicBehaviorTest {
         });
         mockLp.trade(order);
         try {
-            latch.await(1500 ,TimeUnit.MILLISECONDS);
+            latch.await(1500, TimeUnit.MILLISECONDS);
             assertEquals(0, latch.getCount());
         } catch (InterruptedException e) {
             fail();
