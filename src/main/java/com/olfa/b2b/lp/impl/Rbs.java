@@ -45,7 +45,6 @@ public class Rbs extends FixLiquidityProvider {
              FIX44.QuoteReqID(subscription.requestId),
              FIX44.Symbol(subscription.instrument.toString()),
              FIX44.Group(FIX44.NoRelatedSym, FIX44.OrderQty(subscription.amount), FIX44.SettlType.REGULAR));
-
         */
     }
 
