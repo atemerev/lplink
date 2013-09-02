@@ -46,7 +46,7 @@ public abstract class FixLiquidityProvider extends AbstractLiquidityProvider imp
         }
     }
 
-    void disconnect() {
+    public void disconnect() {
         initiator.stop();
         fireStatusEvent(new StatusEvent(getName(),
                 String.format("LP %s has been stopped", getName()), StatusEvent.Type.DISCONNECTED));
@@ -190,5 +190,11 @@ public abstract class FixLiquidityProvider extends AbstractLiquidityProvider imp
         LogFactory logFactory = new FileLogFactory(settings);
         MessageFactory messageFactory = new DefaultMessageFactory();
         return new SocketInitiator(this, storeFactory, settings, logFactory, messageFactory);
+    }
+
+    @Override
+    protected void finalize() throws Throwable {
+        disconnect();
+        super.finalize();
     }
 }

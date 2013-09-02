@@ -74,7 +74,6 @@ public class SubscriptionMonitor implements MarketDataListener {
 
     class Tick {
         public final long timestamp;
-
         Tick(long timestamp) {
             this.timestamp = timestamp;
         }
@@ -95,13 +94,16 @@ public class SubscriptionMonitor implements MarketDataListener {
     }
 
     public void start() {
-        // todo: send subscription requests to corresponding liquidity providers
-        // todo: start monitoring
-        // todo: handle rejects and status change events
+        for (Subscription subscription : subscriptions) {
+            subscribe(subscription);
+        }
     }
 
     public void stop() {
         timer.cancel();
+        for (Subscription subscription : subscriptions) {
+            unsubscribe(subscription);
+        }
     }
 
     public void addStatusListener(LpStatusListener listener) {
@@ -117,6 +119,7 @@ public class SubscriptionMonitor implements MarketDataListener {
         LiquidityProvider lp = liquidityProviders.get(lpName);
         if (lp == null)  {
             lp = startLiquidityProvider(lpName);
+            lp.addStatusListener(new LpMonitorListener());
             liquidityProviders.put(lpName, lp);
         }
         return lp;
@@ -138,11 +141,26 @@ public class SubscriptionMonitor implements MarketDataListener {
     }
 
     private Config getLpConfig(String lpName) {
+        String path = "/lp/" + lpName + "/lp.conf";
         // todo implement
         throw new NotImplementedException();
     }
 
     private void touch(Subscription subscription) {
         lastUpdateTimes.put(subscription, System.currentTimeMillis());
+    }
+
+    class LpMonitorListener implements LpStatusListener {
+        @Override
+        public void onStatusEvent(StatusEvent e) {
+            if (e.type == StatusEvent.Type.DISCONNECTED) {
+                liquidityProviders.remove(e.source);
+                // todo check if we need actually restarting it...
+                getOrCreateLiquidityProvider(e.source);
+            }
+            for (LpStatusListener listener : statusListeners) {
+                listener.onStatusEvent(e);
+            }
+        }
     }
 }
