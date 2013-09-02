@@ -1,12 +1,11 @@
 package com.olfa.b2b.lp;
 
-import com.olfa.b2b.domain.Subscription;
 import com.olfa.b2b.domain.Quote;
+import com.olfa.b2b.domain.Subscription;
 import com.olfa.b2b.events.LpStatusListener;
 import com.olfa.b2b.events.MarketDataListener;
 import com.olfa.b2b.events.StatusEvent;
 import com.olfa.b2b.exception.ConfigurationException;
-import com.olfa.b2b.exception.NotImplementedException;
 import com.olfa.b2b.exception.ValidationException;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
