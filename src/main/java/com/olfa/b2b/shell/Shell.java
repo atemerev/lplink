@@ -2,7 +2,7 @@ package com.olfa.b2b.shell;
 
 import com.olfa.b2b.commands.Command;
 import com.olfa.b2b.commands.CommandParser;
-import com.olfa.b2b.lp.SubscriptionMonitor;
+import com.olfa.b2b.lp.LpManager;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
@@ -21,7 +21,7 @@ public class Shell {
     public void start() {
         final Config b2bConfig = ConfigFactory.load("lp/b2b.conf");
         // todo fix
-        final SubscriptionMonitor liquidityManager = new SubscriptionMonitor(null, 0, 0);
+        final LpManager liquidityManager = new LpManager(null, 0, 0);
         final CommandParser parser = new CommandParser(liquidityManager, this);
         BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
         log("Olfa LP Manager 2013-04-11-001 is online.\n");

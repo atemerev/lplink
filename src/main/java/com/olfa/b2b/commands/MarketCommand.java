@@ -1,17 +1,17 @@
 package com.olfa.b2b.commands;
 
 import com.olfa.b2b.domain.Subscription;
-import com.olfa.b2b.lp.SubscriptionMonitor;
+import com.olfa.b2b.lp.LpManager;
 import com.olfa.b2b.shell.Shell;
 
 import java.util.Set;
 
 public class MarketCommand implements Command {
 
-    private final SubscriptionMonitor monitor;
+    private final LpManager monitor;
     private final Shell shell;
 
-    public MarketCommand(SubscriptionMonitor monitor, Shell shell, String[] tokens) {
+    public MarketCommand(LpManager monitor, Shell shell, String[] tokens) {
         this.monitor = monitor;
         this.shell = shell;
     }

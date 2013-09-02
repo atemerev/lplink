@@ -1,15 +1,15 @@
 package com.olfa.b2b.commands;
 
-import com.olfa.b2b.lp.SubscriptionMonitor;
+import com.olfa.b2b.lp.LpManager;
 import com.olfa.b2b.shell.Shell;
 import org.jetbrains.annotations.Nullable;
 
 public class CommandParser {
 
-    private final SubscriptionMonitor liquidityManager;
+    private final LpManager liquidityManager;
     private final Shell shell;
 
-    public CommandParser(SubscriptionMonitor liquidityManager, Shell shell) {
+    public CommandParser(LpManager liquidityManager, Shell shell) {
         this.liquidityManager = liquidityManager;
         this.shell = shell;
     }

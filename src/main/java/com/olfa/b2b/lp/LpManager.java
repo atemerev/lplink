@@ -15,7 +15,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-public class SubscriptionMonitor implements MarketDataListener {
+public class LpManager implements MarketDataListener {
 
     private final long timeout;
 
@@ -28,7 +28,7 @@ public class SubscriptionMonitor implements MarketDataListener {
 
     private final Queue<LpStatusListener> statusListeners = new ConcurrentLinkedQueue<>();
 
-    public SubscriptionMonitor(Set<Subscription> subscriptions, long tick, long timeout) {
+    public LpManager(Set<Subscription> subscriptions, long tick, long timeout) {
         this.subscriptions = new HashSet<>(subscriptions);
         this.liquidityProviders = new HashMap<>();
         this.timeout = timeout;
