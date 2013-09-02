@@ -29,19 +29,19 @@ public class FixLpConfiguration {
     public final Set<Subscription> subscriptions;
 
     @SuppressWarnings("NullableProblems")
-    public FixLpConfiguration(String name, Config rawConfig, @Nullable Config defaultConfig) throws ConfigurationException {
+    public FixLpConfiguration(@NotNull String name, @NotNull Config rawConfig, @NotNull Config defaultConfig) throws ConfigurationException {
         this.rawConfig = rawConfig;
-        if (defaultConfig != null) {
-            this.defaultConfig = defaultConfig;
-        } else {
-            this.defaultConfig = ConfigFactory.load(DEFAULT_CONFIG_PATH);
-        }
+        this.defaultConfig = defaultConfig;
         this.name = name;
         this.sessionSettings = new SessionSettings();
         Config defaultSession = rawConfig.getConfig("sessions.default");
         populateDefaultSession(defaultSession);
         this.sessionIDs = populateSessions(defaultSession.getString("version"), rawConfig);
         this.subscriptions = mkFeeds(rawConfig);
+    }
+
+    public FixLpConfiguration(@NotNull String name, @NotNull Config rawConfig) {
+        this(name, rawConfig, ConfigFactory.load(DEFAULT_CONFIG_PATH));
     }
 
     public boolean isSessionManaged(String name) {
@@ -67,7 +67,7 @@ public class FixLpConfiguration {
 
     @SuppressWarnings("unchecked")
     private void populateDefaultSession(Config defaultSession) {
-        Map unwrapped = defaultConfig.getConfig("fix").root().unwrapped();
+        Map unwrapped = defaultConfig.root().unwrapped();
         sessionSettings.set(unwrapped);
         sessionSettings.setString("ConnectionType", "initiator");
         sessionSettings.setString("DataDictionary", defaultSession.getString("dictionary"));

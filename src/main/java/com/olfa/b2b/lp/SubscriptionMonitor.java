@@ -9,6 +9,7 @@ import com.olfa.b2b.exception.ConfigurationException;
 import com.olfa.b2b.exception.NotImplementedException;
 import com.olfa.b2b.exception.ValidationException;
 import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
@@ -141,9 +142,7 @@ public class SubscriptionMonitor implements MarketDataListener {
     }
 
     private Config getLpConfig(String lpName) {
-        String path = "/lp/" + lpName + "/lp.conf";
-        // todo implement
-        throw new NotImplementedException();
+        return ConfigFactory.load("/lp/" + lpName + "/lp.conf");
     }
 
     private void touch(Subscription subscription) {
