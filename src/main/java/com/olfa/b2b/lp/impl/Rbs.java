@@ -5,7 +5,7 @@ import com.olfa.b2b.domain.ExecutionReport;
 import com.olfa.b2b.domain.Quote;
 import com.olfa.b2b.events.StatusEvent;
 import com.olfa.b2b.exception.ConfigurationException;
-import com.olfa.b2b.lp.FixLiquidityProvider;
+import com.olfa.b2b.lp.quickfix.FixLiquidityProvider;
 import com.typesafe.config.Config;
 import quickfix.FieldNotFound;
 import quickfix.IncorrectTagValue;

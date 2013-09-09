@@ -1,4 +1,4 @@
-package com.olfa.b2b.lp;
+package com.olfa.b2b.lp.quickfix;
 
 import com.olfa.b2b.domain.Order;
 import com.olfa.b2b.domain.Subscription;
@@ -6,6 +6,7 @@ import com.olfa.b2b.events.StatusEvent;
 import com.olfa.b2b.exception.ConfigurationException;
 import com.olfa.b2b.exception.LifecycleException;
 import com.olfa.b2b.exception.RejectedException;
+import com.olfa.b2b.lp.AbstractLiquidityProvider;
 import com.olfa.b2b.lp.quickfix.FixLpConfiguration;
 import com.typesafe.config.Config;
 import org.jetbrains.annotations.NotNull;
