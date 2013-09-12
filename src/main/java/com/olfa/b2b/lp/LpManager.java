@@ -31,6 +31,10 @@ public class LpManager implements MarketDataListener {
     public LpManager(Set<Subscription> subscriptions, long tick, long timeout) {
         this.subscriptions = new HashSet<>(subscriptions);
         this.liquidityProviders = new HashMap<>();
+        for (Subscription subscription : subscriptions) {
+            // todo check if LP configuration exists?
+            liquidityProviders.put(subscription.source, null);
+        }
         this.timeout = timeout;
         timer.schedule(new TimerTask() {
             @Override

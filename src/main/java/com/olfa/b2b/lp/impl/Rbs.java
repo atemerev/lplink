@@ -24,8 +24,12 @@ public class Rbs extends FixLiquidityProvider {
     private static final String APPLICATION_PING_REQUEST = "U1";
     private static final String APPLICATION_PING_RESPONSE = "U2";
 
-    public Rbs(Config conf) throws ConfigurationException {
+    public Rbs(String name, Config conf) throws ConfigurationException {
         super("rbs", conf);
+    }
+
+    public Rbs(Config conf) throws ConfigurationException {
+        this("rbs", conf);
     }
 
     public void doSubscribe(Subscription subscription) {

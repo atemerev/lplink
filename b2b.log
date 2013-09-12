@@ -1,0 +1,13 @@
+15:14:13.350 [SocketAcceptorIoProcessor-0.0] ERROR q.mina.acceptor.AcceptorIoHandler - Socket (/127.0.0.1:62043): java.io.IOException: An existing connection was forcibly closed by the remote host
+java.io.IOException: An existing connection was forcibly closed by the remote host
+	at sun.nio.ch.SocketDispatcher.read0(Native Method) ~[na:1.7.0_21]
+	at sun.nio.ch.SocketDispatcher.read(SocketDispatcher.java:43) ~[na:1.7.0_21]
+	at sun.nio.ch.IOUtil.readIntoNativeBuffer(IOUtil.java:225) ~[na:1.7.0_21]
+	at sun.nio.ch.IOUtil.read(IOUtil.java:198) ~[na:1.7.0_21]
+	at sun.nio.ch.SocketChannelImpl.read(SocketChannelImpl.java:359) ~[na:1.7.0_21]
+	at org.apache.mina.transport.socket.nio.SocketIoProcessor.read(SocketIoProcessor.java:218) [mina-core-1.1.7.jar:na]
+	at org.apache.mina.transport.socket.nio.SocketIoProcessor.process(SocketIoProcessor.java:198) [mina-core-1.1.7.jar:na]
+	at org.apache.mina.transport.socket.nio.SocketIoProcessor.access$400(SocketIoProcessor.java:45) [mina-core-1.1.7.jar:na]
+	at org.apache.mina.transport.socket.nio.SocketIoProcessor$Worker.run(SocketIoProcessor.java:485) [mina-core-1.1.7.jar:na]
+	at org.apache.mina.util.NamePreservingRunnable.run(NamePreservingRunnable.java:51) [mina-core-1.1.7.jar:na]
+	at java.lang.Thread.run(Thread.java:722) [na:1.7.0_21]
