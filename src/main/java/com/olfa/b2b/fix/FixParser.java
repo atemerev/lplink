@@ -9,17 +9,11 @@ import static com.olfa.b2b.fix.FixParser.ByteState.*;
 public class FixParser {
 
     private ByteState state = GARBAGE;
-    private ByteBuffer tagNumBuffer = ByteBuffer.allocate(10);
-    private ByteBuffer valueBuffer = ByteBuffer.allocate(65535);
-    private List<Tag> tagBuffer = new ArrayList<>();
-    private int groupLevel = 0;
-    private final FixDictionary dictionary;
+    private final ByteBuffer tagNumBuffer = ByteBuffer.allocate(10);
+    private final ByteBuffer valueBuffer = ByteBuffer.allocate(65535);
+    private final List<FixSpan> messages = new ArrayList<>();
 
-    public FixParser(FixDictionary dictionary) {
-        this.dictionary = dictionary;
-    }
-
-    public void onData(byte[] bytes) {
+    public List<FixSpan> onData(byte[] bytes) {
         for (byte b : bytes) {
             switch (state) {
                 case GARBAGE:
@@ -66,15 +60,10 @@ public class FixParser {
                     break;
             }
         }
+        return messages;
     }
 
-    public void onTag(Tag tag) {
-        int[] groupTags = dictionary.getAllowedTags(tag.number);
-        if (groupTags.length > 0) {
-            tagBuffer.add(tag);
-        } else {
-            // todo start new group
-        }
+    public void onTag(FixTag tag) {
     }
 
     private void emitTag() {
@@ -82,7 +71,7 @@ public class FixParser {
         byte[] bytes = new byte[valueBuffer.remaining()];
         valueBuffer.get(bytes);
         String value = new String(bytes);
-        Tag tag = new Tag(tagNum, value);
+        FixTag tag = new FixTag(tagNum, value);
         tagNumBuffer.clear();
         valueBuffer.clear();
         onTag(tag);
@@ -91,9 +80,7 @@ public class FixParser {
     private void fault() {
         tagNumBuffer.clear();
         valueBuffer.clear();
-        tagBuffer.clear();
         state = GARBAGE;
-        groupLevel = 0;
     }
 
     private boolean isNumber(byte b) {

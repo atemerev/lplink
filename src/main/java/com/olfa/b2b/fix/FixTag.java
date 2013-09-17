@@ -2,11 +2,11 @@ package com.olfa.b2b.fix;
 
 import java.math.BigDecimal;
 
-public class Tag {
+public class FixTag {
     public final int number;
     public final String value;
 
-    Tag(int number, String value) {
+    FixTag(int number, String value) {
         this.number = number;
         this.value = value;
     }

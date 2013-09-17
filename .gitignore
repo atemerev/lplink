@@ -7,4 +7,5 @@ lib/
 lib_managed/
 src_managed/
 out/
+classes/
 project/boot/
