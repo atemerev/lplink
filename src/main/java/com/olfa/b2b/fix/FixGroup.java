@@ -8,12 +8,12 @@ import java.util.Collections;
 import java.util.List;
 
 public class FixGroup {
+
     private final FixTag groupTag;
     private final List<FixSpan> spans;
 
     public FixGroup(FixTag groupTag, ArrayList<FixSpan> spans) {
         this.groupTag = groupTag;
-        FixSpan first = null;
         // todo validate group dividers
         this.spans = Collections.unmodifiableList(spans);
     }

@@ -7,7 +7,7 @@ import java.util.*;
 
 public class FixSpan {
 
-    private final Map<Integer, FixTag> tags;
+    private final LinkedHashMap<Integer, FixTag> tags;
     private final Map<Integer, FixGroup> groups;
 
     public FixSpan(@NotNull List<FixTag> tags, @NotNull List<FixGroup> groups) {
@@ -24,8 +24,13 @@ public class FixSpan {
                 throw new IllegalArgumentException("Group tag is not defined in tags list");
             }
         }
-        this.tags = Collections.unmodifiableMap(tagMap);
-        this.groups = Collections.unmodifiableMap(groupMap);
+        this.tags = tagMap;
+        this.groups = groupMap;
+    }
+
+    public FixSpan(@NotNull LinkedHashMap<Integer, FixTag> tags, @NotNull Map<Integer, FixGroup> groups) {
+        this.tags = tags;
+        this.groups = groups;
     }
 
     @NotNull

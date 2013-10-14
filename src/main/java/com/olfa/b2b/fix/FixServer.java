@@ -27,7 +27,7 @@ public class FixServer {
                     .childHandler(new ChannelInitializer<SocketChannel>() {
                         @Override
                         protected void initChannel(SocketChannel ch) throws Exception {
-                            ch.pipeline().addLast(new FixDecoder());
+                            ch.pipeline().addLast(new FixDecoder(), new FixEncoder());
                         }
                     })
                     .option(ChannelOption.SO_BACKLOG, 128)

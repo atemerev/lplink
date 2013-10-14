@@ -11,3 +11,45 @@ java.io.IOException: An existing connection was forcibly closed by the remote ho
 	at org.apache.mina.transport.socket.nio.SocketIoProcessor$Worker.run(SocketIoProcessor.java:485) [mina-core-1.1.7.jar:na]
 	at org.apache.mina.util.NamePreservingRunnable.run(NamePreservingRunnable.java:51) [mina-core-1.1.7.jar:na]
 	at java.lang.Thread.run(Thread.java:722) [na:1.7.0_21]
+15:03:32.076 [nioEventLoopGroup-3-1] WARN  i.n.channel.DefaultChannelPipeline - An exceptionCaught() event was fired, and it reached at the tail of the pipeline. It usually means the last handler in the pipeline did not handle the exception.
+io.netty.handler.codec.DecoderException: java.nio.BufferUnderflowException
+	at io.netty.handler.codec.ByteToMessageDecoder.callDecode(ByteToMessageDecoder.java:263) ~[netty-all-4.0.8.Final.jar:na]
+	at io.netty.handler.codec.ByteToMessageDecoder.channelRead(ByteToMessageDecoder.java:131) ~[netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.DefaultChannelHandlerContext.invokeChannelRead(DefaultChannelHandlerContext.java:332) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.DefaultChannelHandlerContext.fireChannelRead(DefaultChannelHandlerContext.java:318) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.DefaultChannelPipeline.fireChannelRead(DefaultChannelPipeline.java:785) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.nio.AbstractNioByteChannel$NioByteUnsafe.read(AbstractNioByteChannel.java:100) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.nio.NioEventLoop.processSelectedKey(NioEventLoop.java:478) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.nio.NioEventLoop.processSelectedKeysOptimized(NioEventLoop.java:447) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.nio.NioEventLoop.run(NioEventLoop.java:341) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.util.concurrent.SingleThreadEventExecutor$2.run(SingleThreadEventExecutor.java:101) [netty-all-4.0.8.Final.jar:na]
+	at java.lang.Thread.run(Thread.java:722) [na:1.7.0_21]
+Caused by: java.nio.BufferUnderflowException: null
+	at java.nio.Buffer.nextGetIndex(Buffer.java:498) ~[na:1.7.0_21]
+	at java.nio.HeapByteBuffer.getInt(HeapByteBuffer.java:355) ~[na:1.7.0_21]
+	at com.olfa.b2b.fix.FixParser.emitTag(FixParser.java:71) ~[classes/:na]
+	at com.olfa.b2b.fix.FixParser.onData(FixParser.java:47) ~[classes/:na]
+	at com.olfa.b2b.fix.FixDecoder.decode(FixDecoder.java:20) ~[classes/:na]
+	at io.netty.handler.codec.ByteToMessageDecoder.callDecode(ByteToMessageDecoder.java:232) ~[netty-all-4.0.8.Final.jar:na]
+	... 10 common frames omitted
+15:07:06.502 [nioEventLoopGroup-3-1] WARN  i.n.channel.DefaultChannelPipeline - An exceptionCaught() event was fired, and it reached at the tail of the pipeline. It usually means the last handler in the pipeline did not handle the exception.
+io.netty.handler.codec.DecoderException: java.nio.BufferUnderflowException
+	at io.netty.handler.codec.ByteToMessageDecoder.callDecode(ByteToMessageDecoder.java:263) ~[netty-all-4.0.8.Final.jar:na]
+	at io.netty.handler.codec.ByteToMessageDecoder.channelRead(ByteToMessageDecoder.java:131) ~[netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.DefaultChannelHandlerContext.invokeChannelRead(DefaultChannelHandlerContext.java:332) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.DefaultChannelHandlerContext.fireChannelRead(DefaultChannelHandlerContext.java:318) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.DefaultChannelPipeline.fireChannelRead(DefaultChannelPipeline.java:785) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.nio.AbstractNioByteChannel$NioByteUnsafe.read(AbstractNioByteChannel.java:100) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.nio.NioEventLoop.processSelectedKey(NioEventLoop.java:478) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.nio.NioEventLoop.processSelectedKeysOptimized(NioEventLoop.java:447) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.nio.NioEventLoop.run(NioEventLoop.java:341) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.util.concurrent.SingleThreadEventExecutor$2.run(SingleThreadEventExecutor.java:101) [netty-all-4.0.8.Final.jar:na]
+	at java.lang.Thread.run(Thread.java:722) [na:1.7.0_21]
+Caused by: java.nio.BufferUnderflowException: null
+	at java.nio.Buffer.nextGetIndex(Buffer.java:498) ~[na:1.7.0_21]
+	at java.nio.HeapByteBuffer.getInt(HeapByteBuffer.java:355) ~[na:1.7.0_21]
+	at com.olfa.b2b.fix.FixParser.emitTag(FixParser.java:71) ~[classes/:na]
+	at com.olfa.b2b.fix.FixParser.onData(FixParser.java:47) ~[classes/:na]
+	at com.olfa.b2b.fix.FixDecoder.decode(FixDecoder.java:20) ~[classes/:na]
+	at io.netty.handler.codec.ByteToMessageDecoder.callDecode(ByteToMessageDecoder.java:232) ~[netty-all-4.0.8.Final.jar:na]
+	... 10 common frames omitted

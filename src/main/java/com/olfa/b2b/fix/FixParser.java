@@ -15,6 +15,7 @@ public class FixParser {
 
     public List<FixSpan> onData(byte[] bytes) {
         for (byte b : bytes) {
+            System.out.println(state);
             switch (state) {
                 case GARBAGE:
                     if (isNumber(b)) {
@@ -41,7 +42,7 @@ public class FixParser {
                     }
                     break;
                 case VALUE:
-                    if (isEqualsSign(b)) {
+                    if (isSplit(b)) {
                         valueBuffer.flip();
                         emitTag();
                         state = SPLIT;
@@ -64,6 +65,7 @@ public class FixParser {
     }
 
     public void onTag(FixTag tag) {
+        System.out.println(tag);
     }
 
     private void emitTag() {
