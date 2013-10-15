@@ -30,12 +30,12 @@ public class FixParser {
                         tagNumBuffer.flip();
                         state = EQUALS;
                     } else {
-                        fault();
+                        reset();
                     }
                     break;
                 case EQUALS:
                     if (isSplit(b)) {
-                        fault();
+                        reset();
                     } else {
                         valueBuffer.put(b);
                         state = VALUE;
@@ -57,9 +57,9 @@ public class FixParser {
                     } else if (isMessageSplit(b)) {
                         FixSpan span = builder.emit();
                         System.out.println(span);
-                        fault();
+                        reset();
                     } else {
-                        fault();
+                        reset();
                     }
                     break;
             }
@@ -85,7 +85,7 @@ public class FixParser {
         onTag(tag);
     }
 
-    private void fault() {
+    private void reset() {
         tagNumBuffer.clear();
         valueBuffer.clear();
         state = GARBAGE;
