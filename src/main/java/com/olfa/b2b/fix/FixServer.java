@@ -1,5 +1,9 @@
 package com.olfa.b2b.fix;
 
+import com.olfa.b2b.domain.CurrencyPair;
+import com.olfa.b2b.domain.Subscription;
+import com.olfa.b2b.lp.LpManager;
+import com.olfa.b2b.lp.quickfix.FixLpManagerServer;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -9,12 +13,18 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
+import java.math.BigDecimal;
+import java.util.HashSet;
+import java.util.Set;
+
 public class FixServer {
 
+    private final FixMessageListener listener;
     private final int port;
 
-    public FixServer(int port) {
+    public FixServer(int port, FixMessageListener listener) {
         this.port = port;
+        this.listener = listener;
     }
 
     public void run() throws Exception {
@@ -27,7 +37,7 @@ public class FixServer {
                     .childHandler(new ChannelInitializer<SocketChannel>() {
                         @Override
                         protected void initChannel(SocketChannel ch) throws Exception {
-                            ch.pipeline().addLast(new FixDecoder(), new FixEncoder());
+                            ch.pipeline().addLast(new FixDecoder(), new FixEncoder(), new FixServerHandler(listener));
                         }
                     })
                     .option(ChannelOption.SO_BACKLOG, 128)
@@ -48,6 +58,17 @@ public class FixServer {
         } else {
             port = 6440;
         }
-        new FixServer(port).run();
+        Set<Subscription> subs = new HashSet<>();
+        subs.add(new Subscription("rbs", new CurrencyPair("EUR/USD"), new BigDecimal("1000000"), null));
+        subs.add(new Subscription("rbs", new CurrencyPair("EUR/USD"), new BigDecimal("3000000"), null));
+        subs.add(new Subscription("rbs", new CurrencyPair("EUR/USD"), new BigDecimal("5000000"), null));
+        subs.add(new Subscription("rbs", new CurrencyPair("GBP/USD"), new BigDecimal("1000000"), null));
+        subs.add(new Subscription("rbs", new CurrencyPair("GBP/USD"), new BigDecimal("3000000"), null));
+        subs.add(new Subscription("rbs", new CurrencyPair("GBP/USD"), new BigDecimal("5000000"), null));
+        subs.add(new Subscription("bnp", new CurrencyPair("USD/JPY"), new BigDecimal("1000000"), "BLUE"));
+        subs.add(new Subscription("bnp", new CurrencyPair("USD/JPY"), new BigDecimal("3000000"), "BLUE"));
+        LpManager lpManager = new LpManager(subs, 1000, 30000);
+        FixLpManagerServer server = new FixLpManagerServer(lpManager);
+        new FixServer(port, server).run();
     }
 }

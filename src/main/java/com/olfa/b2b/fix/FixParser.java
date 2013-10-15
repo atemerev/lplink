@@ -2,6 +2,7 @@ package com.olfa.b2b.fix;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static com.olfa.b2b.fix.FixParser.ByteState.*;
@@ -56,7 +57,7 @@ public class FixParser {
                         state = TAGNUM;
                     } else if (isMessageSplit(b)) {
                         FixSpan span = builder.emit();
-                        System.out.println(span);
+                        messages.add(span);
                         reset();
                     } else {
                         reset();
@@ -64,12 +65,18 @@ public class FixParser {
                     break;
             }
         }
-        return messages;
+        if (messages.isEmpty()) {
+            //noinspection unchecked
+            return Collections.EMPTY_LIST;
+        } else {
+            List<FixSpan> result = new ArrayList<>(messages);
+            messages.clear();
+            return result;
+        }
     }
 
     public void onTag(FixTag tag) {
         builder.onTag(tag);
-        System.out.println(tag);
     }
 
     private void emitTag() {

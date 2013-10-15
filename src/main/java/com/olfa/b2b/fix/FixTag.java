@@ -4,13 +4,37 @@ import org.jetbrains.annotations.NotNull;
 
 import java.math.BigDecimal;
 
-public class FixTag {
-    public final int number;
-    public @NotNull final String value;
+public class FixTag implements FixElement {
+    private final int number;
+    private @NotNull final String value;
 
-    FixTag(int number, @NotNull String value) {
+    public FixTag(int number, @NotNull String value) {
         this.number = number;
         this.value = value;
+    }
+
+    public FixTag(int number, int value) {
+        this.number = number;
+        this.value = String.valueOf(value);
+    }
+
+    public FixTag(int number, char value) {
+        this.number = number;
+        this.value = String.valueOf(value);
+    }
+
+    public int getNumber() {
+        return number;
+    }
+
+    @NotNull
+    public String getValue() {
+        return value;
+    }
+
+    @Override
+    public FixTag asTag() {
+        return this;
     }
 
     public int getInt() {
@@ -48,5 +72,10 @@ public class FixTag {
     @Override
     public String toString() {
         return number + "=" + value;
+    }
+
+    @Override
+    public boolean isGroup() {
+        return false;
     }
 }

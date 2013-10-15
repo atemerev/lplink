@@ -3,28 +3,28 @@ package com.olfa.b2b.fix;
 import com.olfa.b2b.exception.NotFoundException;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-public class FixGroup {
+public class FixGroup implements FixElement {
 
     private final FixTag groupTag;
     private final List<FixSpan> spans;
 
-    public FixGroup(FixTag groupTag, ArrayList<FixSpan> spans) {
-        this.groupTag = groupTag;
-        // todo validate group dividers
+    public FixGroup(int groupTagNum, List<FixSpan> spans) {
+        this.groupTag = new FixTag(groupTagNum, spans.size());
         this.spans = Collections.unmodifiableList(spans);
     }
 
-    @NotNull
-    public FixTag getGroupTag() {
-        return groupTag;
+    public FixGroup(int groupTagNum, FixSpan... spans) {
+        this.groupTag = new FixTag(groupTagNum, spans.length);
+        this.spans = Collections.unmodifiableList(Arrays.asList(spans));
     }
 
-    public int getNumber() {
-        return groupTag.number;
+    @Override
+    public FixTag asTag() {
+        return groupTag;
     }
 
     @NotNull
@@ -44,5 +44,10 @@ public class FixGroup {
             builder.append(span.toString());
         }
         return builder.toString();
+    }
+
+    @Override
+    public boolean isGroup() {
+        return true;
     }
 }

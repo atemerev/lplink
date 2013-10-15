@@ -9,6 +9,7 @@ import com.olfa.b2b.exception.ConfigurationException;
 import com.olfa.b2b.exception.ValidationException;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
@@ -18,13 +19,10 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class LpManager implements MarketDataListener {
 
     private final long timeout;
-
     private final Map<Subscription, Long> lastUpdateTimes = new ConcurrentHashMap<>();
-
     private final Timer timer = new Timer(true);
-
-    public final Set<Subscription> subscriptions;
-    public final Map<String, LiquidityProvider> liquidityProviders;
+    private final Set<Subscription> subscriptions;
+    private final Map<String, LiquidityProvider> liquidityProviders;
 
     private final Queue<LpStatusListener> statusListeners = new ConcurrentLinkedQueue<>();
 
@@ -42,6 +40,19 @@ public class LpManager implements MarketDataListener {
                 onTick(new Tick(System.currentTimeMillis()));
             }
         }, 0, tick);
+    }
+
+    public Set<String> getLpNames() {
+        return liquidityProviders.keySet();
+    }
+
+    @Nullable
+    public LiquidityProvider getLp(String name) {
+        return liquidityProviders.get(name);
+    }
+
+    public Set<Subscription> getSubscriptions() {
+        return subscriptions;
     }
 
     public void onQuote(Quote quote) {

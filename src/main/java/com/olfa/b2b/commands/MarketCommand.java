@@ -17,7 +17,7 @@ public class MarketCommand implements Command {
     }
 
     @Override public void run() {
-        Set<Subscription> allSubscriptions = monitor.subscriptions;
+        Set<Subscription> allSubscriptions = monitor.getSubscriptions();
         for (Subscription subscription : allSubscriptions) {
         }
     }

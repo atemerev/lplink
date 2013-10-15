@@ -17,20 +17,20 @@ public class SpanBuilder {
         if (currentBuilder != null) {
             FixGroup groupOrNull = currentBuilder.onTag(tag);
             if (groupOrNull != null) {
-                groups.put(groupOrNull.getNumber(), groupOrNull);
-                tags.put(tag.number, tag);
+                groups.put(groupOrNull.asTag().getNumber(), groupOrNull);
+                tags.put(tag.getNumber(), tag);
                 currentBuilder = null;
                 return false;
             } else {
                 return true;
             }
         } else {
-            if (dictionary.isGroup(tag.number)) {
+            if (dictionary.isGroup(tag.getNumber())) {
                 this.currentBuilder = new GroupBuilder(dictionary, tag);
-                tags.put(tag.number, tag);
+                tags.put(tag.getNumber(), tag);
                 return true;
             } else {
-                tags.put(tag.number, tag);
+                tags.put(tag.getNumber(), tag);
                 return false;
             }
         }
@@ -39,7 +39,7 @@ public class SpanBuilder {
     public FixSpan emit() {
         if (currentBuilder != null) {
             FixGroup group = currentBuilder.emit();
-            groups.put(group.getNumber(), group);
+            groups.put(group.asTag().getNumber(), group);
             currentBuilder = null;
         }
         FixSpan result = new FixSpan(new LinkedHashMap<>(tags), new LinkedHashMap<>(groups));

@@ -19,7 +19,7 @@ public class GroupBuilder {
     public GroupBuilder(FixDictionary dictionary, FixTag groupTag) {
         this.dictionary = dictionary;
         this.groupStartTag = groupTag;
-        int[] allowedTags = dictionary.getAllowedTags(groupTag.number);
+        int[] allowedTags = dictionary.getAllowedTags(groupTag.getNumber());
         assert allowedTags.length > 0;
         this.groupDividerTag = allowedTags[0];
         this.groupAllowedTags = new HashSet<>();
@@ -31,20 +31,20 @@ public class GroupBuilder {
     }
 
     public @Nullable FixGroup onTag(FixTag tag) {
-        if (tag.number == groupDividerTag) {
+        if (tag.getNumber() == groupDividerTag) {
             if (currentSpan != null) {
                 spans.add(currentSpan.emit());
             }
             currentSpan = new SpanBuilder(dictionary);
         }
-        if (groupAllowedTags.contains(tag.number) || inNestedGroup) {
+        if (groupAllowedTags.contains(tag.getNumber()) || inNestedGroup) {
             this.inNestedGroup = currentSpan.onTag(tag);
             return null;
         } else {
             this.inNestedGroup = false;
             spans.add(currentSpan.emit());
             currentSpan = null;
-            return new FixGroup(groupStartTag, spans);
+            return new FixGroup(groupStartTag.getNumber(), spans);
         }
     }
 
@@ -52,6 +52,6 @@ public class GroupBuilder {
         if (currentSpan.isDirty()) {
             spans.add(currentSpan.emit());
         }
-        return new FixGroup(groupStartTag, spans);
+        return new FixGroup(groupStartTag.getNumber(), spans);
     }
 }

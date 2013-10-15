@@ -10,18 +10,15 @@ public class FixSpan {
     private final LinkedHashMap<Integer, FixTag> tags;
     private final Map<Integer, FixGroup> groups;
 
-    public FixSpan(@NotNull List<FixTag> tags, @NotNull List<FixGroup> groups) {
+    public FixSpan(FixElement... contents) {
         final LinkedHashMap<Integer, FixTag> tagMap = new LinkedHashMap<>();
         final Map<Integer, FixGroup> groupMap = new HashMap<>();
-        for (FixTag tag : tags) {
-            tagMap.put(tag.number, tag);
-        }
-        for (FixGroup group : groups) {
-            final int groupNum = group.getGroupTag().number;
-            if (tagMap.containsKey(groupNum)) {
-                groupMap.put(groupNum, group);
-            } else {
-                throw new IllegalArgumentException("Group tag is not defined in tags list");
+        for (FixElement element : contents) {
+            if (element != null) {
+                tagMap.put(element.asTag().getNumber(), element.asTag());
+                if (element.isGroup()) {
+                    groupMap.put(element.asTag().getNumber(), (FixGroup) element);
+                }
             }
         }
         this.tags = tagMap;
@@ -64,8 +61,8 @@ public class FixSpan {
         for (FixTag tag : tags.values()) {
             builder.append(tag.toString());
             builder.append(" | ");
-            if (groups.containsKey(tag.number)) {
-                builder.append(groups.get(tag.number).toString());
+            if (groups.containsKey(tag.getNumber())) {
+                builder.append(groups.get(tag.getNumber()).toString());
             }
         }
         return builder.toString();
