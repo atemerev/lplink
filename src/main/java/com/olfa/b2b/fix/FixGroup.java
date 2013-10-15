@@ -36,4 +36,13 @@ public class FixGroup {
                     groupCount, spans.size()));
         }
     }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        for (FixSpan span : spans) {
+            builder.append(span.toString());
+        }
+        return builder.toString();
+    }
 }

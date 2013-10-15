@@ -1,9 +1,5 @@
 package com.olfa.b2b.fix;
 
-import com.olfa.b2b.exception.NotImplementedException;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.*;
 
 public class SpanBuilder {
@@ -31,6 +27,7 @@ public class SpanBuilder {
         } else {
             if (dictionary.isGroup(tag.number)) {
                 this.currentBuilder = new GroupBuilder(dictionary, tag);
+                tags.put(tag.number, tag);
                 return true;
             } else {
                 tags.put(tag.number, tag);
@@ -45,6 +42,13 @@ public class SpanBuilder {
             groups.put(group.getNumber(), group);
             currentBuilder = null;
         }
-        return new FixSpan(tags, groups);
+        FixSpan result = new FixSpan(new LinkedHashMap<>(tags), new LinkedHashMap<>(groups));
+        tags.clear();
+        groups.clear();
+        return result;
+    }
+
+    public boolean isDirty() {
+        return !(tags.isEmpty() && groups.isEmpty());
     }
 }

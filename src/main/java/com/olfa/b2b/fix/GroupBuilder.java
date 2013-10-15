@@ -3,26 +3,31 @@ package com.olfa.b2b.fix;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 public class GroupBuilder {
 
     private final FixDictionary dictionary;
     private final FixTag groupStartTag;
     private final int groupDividerTag;
-    private final int[] groupAllowedTags;
-    private int groupTagIndex = 0;
+    private final Set<Integer> groupAllowedTags;
     private final ArrayList<FixSpan> spans;
     private SpanBuilder currentSpan;
-    private boolean dirty = false;
+    private boolean inNestedGroup = false;
 
     public GroupBuilder(FixDictionary dictionary, FixTag groupTag) {
         this.dictionary = dictionary;
         this.groupStartTag = groupTag;
-        this.groupAllowedTags = dictionary.getAllowedTags(groupTag.getInt());
-        assert groupAllowedTags.length > 0;
-        this.groupDividerTag = groupAllowedTags[0];
+        int[] allowedTags = dictionary.getAllowedTags(groupTag.number);
+        assert allowedTags.length > 0;
+        this.groupDividerTag = allowedTags[0];
+        this.groupAllowedTags = new HashSet<>();
+        for (Integer num : allowedTags) {
+            groupAllowedTags.add(num);
+        }
         this.spans = new ArrayList<>(groupTag.getInt());
-        this.currentSpan = new SpanBuilder(dictionary);
+        this.currentSpan = null;
     }
 
     public @Nullable FixGroup onTag(FixTag tag) {
@@ -31,31 +36,21 @@ public class GroupBuilder {
                 spans.add(currentSpan.emit());
             }
             currentSpan = new SpanBuilder(dictionary);
-            dirty = false;
         }
-        while (groupTagIndex < groupAllowedTags.length) {
-            if (tag.number == groupAllowedTags[groupTagIndex]) {
-                dirty = true;
-                boolean inGroup = currentSpan.onTag(tag);
-                if (!inGroup) {
-                    groupTagIndex++;
-                }
-                break;
-            } else {
-                groupTagIndex++;
-            }
-        }
-        if (groupTagIndex == groupAllowedTags.length) {
-            return new FixGroup(groupStartTag, spans);
-        } else {
+        if (groupAllowedTags.contains(tag.number) || inNestedGroup) {
+            this.inNestedGroup = currentSpan.onTag(tag);
             return null;
+        } else {
+            this.inNestedGroup = false;
+            spans.add(currentSpan.emit());
+            currentSpan = null;
+            return new FixGroup(groupStartTag, spans);
         }
     }
 
     public FixGroup emit() {
-        if (dirty) {
+        if (currentSpan.isDirty()) {
             spans.add(currentSpan.emit());
-            dirty = false;
         }
         return new FixGroup(groupStartTag, spans);
     }

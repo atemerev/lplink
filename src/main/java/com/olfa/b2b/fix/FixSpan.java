@@ -57,4 +57,17 @@ public class FixSpan {
         // todo implement
         return new byte[0];
     }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        for (FixTag tag : tags.values()) {
+            builder.append(tag.toString());
+            builder.append(" | ");
+            if (groups.containsKey(tag.number)) {
+                builder.append(groups.get(tag.number).toString());
+            }
+        }
+        return builder.toString();
+    }
 }

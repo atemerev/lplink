@@ -53,3 +53,151 @@ Caused by: java.nio.BufferUnderflowException: null
 	at com.olfa.b2b.fix.FixDecoder.decode(FixDecoder.java:20) ~[classes/:na]
 	at io.netty.handler.codec.ByteToMessageDecoder.callDecode(ByteToMessageDecoder.java:232) ~[netty-all-4.0.8.Final.jar:na]
 	... 10 common frames omitted
+10:13:25.767 [nioEventLoopGroup-3-1] WARN  i.n.channel.DefaultChannelPipeline - An exceptionCaught() event was fired, and it reached at the tail of the pipeline. It usually means the last handler in the pipeline did not handle the exception.
+io.netty.handler.codec.DecoderException: java.nio.BufferUnderflowException
+	at io.netty.handler.codec.ByteToMessageDecoder.callDecode(ByteToMessageDecoder.java:263) ~[netty-all-4.0.8.Final.jar:na]
+	at io.netty.handler.codec.ByteToMessageDecoder.channelRead(ByteToMessageDecoder.java:131) ~[netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.DefaultChannelHandlerContext.invokeChannelRead(DefaultChannelHandlerContext.java:332) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.DefaultChannelHandlerContext.fireChannelRead(DefaultChannelHandlerContext.java:318) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.DefaultChannelPipeline.fireChannelRead(DefaultChannelPipeline.java:785) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.nio.AbstractNioByteChannel$NioByteUnsafe.read(AbstractNioByteChannel.java:100) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.nio.NioEventLoop.processSelectedKey(NioEventLoop.java:478) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.nio.NioEventLoop.processSelectedKeysOptimized(NioEventLoop.java:447) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.nio.NioEventLoop.run(NioEventLoop.java:341) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.util.concurrent.SingleThreadEventExecutor$2.run(SingleThreadEventExecutor.java:101) [netty-all-4.0.8.Final.jar:na]
+	at java.lang.Thread.run(Thread.java:722) [na:1.7.0_21]
+Caused by: java.nio.BufferUnderflowException: null
+	at java.nio.Buffer.nextGetIndex(Buffer.java:498) ~[na:1.7.0_21]
+	at java.nio.HeapByteBuffer.getInt(HeapByteBuffer.java:355) ~[na:1.7.0_21]
+	at com.olfa.b2b.fix.FixParser.emitTag(FixParser.java:76) ~[classes/:na]
+	at com.olfa.b2b.fix.FixParser.onData(FixParser.java:48) ~[classes/:na]
+	at com.olfa.b2b.fix.FixDecoder.decode(FixDecoder.java:20) ~[classes/:na]
+	at io.netty.handler.codec.ByteToMessageDecoder.callDecode(ByteToMessageDecoder.java:232) ~[netty-all-4.0.8.Final.jar:na]
+	... 10 common frames omitted
+10:13:26.418 [nioEventLoopGroup-3-1] WARN  i.n.channel.DefaultChannelPipeline - An exceptionCaught() event was fired, and it reached at the tail of the pipeline. It usually means the last handler in the pipeline did not handle the exception.
+io.netty.handler.codec.DecoderException: java.nio.BufferOverflowException
+	at io.netty.handler.codec.ByteToMessageDecoder.callDecode(ByteToMessageDecoder.java:263) ~[netty-all-4.0.8.Final.jar:na]
+	at io.netty.handler.codec.ByteToMessageDecoder.channelRead(ByteToMessageDecoder.java:131) ~[netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.DefaultChannelHandlerContext.invokeChannelRead(DefaultChannelHandlerContext.java:332) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.DefaultChannelHandlerContext.fireChannelRead(DefaultChannelHandlerContext.java:318) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.DefaultChannelPipeline.fireChannelRead(DefaultChannelPipeline.java:785) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.nio.AbstractNioByteChannel$NioByteUnsafe.read(AbstractNioByteChannel.java:100) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.nio.NioEventLoop.processSelectedKey(NioEventLoop.java:478) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.nio.NioEventLoop.processSelectedKeysOptimized(NioEventLoop.java:447) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.nio.NioEventLoop.run(NioEventLoop.java:341) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.util.concurrent.SingleThreadEventExecutor$2.run(SingleThreadEventExecutor.java:101) [netty-all-4.0.8.Final.jar:na]
+	at java.lang.Thread.run(Thread.java:722) [na:1.7.0_21]
+Caused by: java.nio.BufferOverflowException: null
+	at java.nio.Buffer.nextPutIndex(Buffer.java:513) ~[na:1.7.0_21]
+	at java.nio.HeapByteBuffer.put(HeapByteBuffer.java:163) ~[na:1.7.0_21]
+	at com.olfa.b2b.fix.FixParser.onData(FixParser.java:51) ~[classes/:na]
+	at com.olfa.b2b.fix.FixDecoder.decode(FixDecoder.java:20) ~[classes/:na]
+	at io.netty.handler.codec.ByteToMessageDecoder.callDecode(ByteToMessageDecoder.java:232) ~[netty-all-4.0.8.Final.jar:na]
+	... 10 common frames omitted
+10:13:26.538 [nioEventLoopGroup-3-1] WARN  i.n.channel.DefaultChannelPipeline - An exceptionCaught() event was fired, and it reached at the tail of the pipeline. It usually means the last handler in the pipeline did not handle the exception.
+io.netty.handler.codec.DecoderException: java.nio.BufferOverflowException
+	at io.netty.handler.codec.ByteToMessageDecoder.callDecode(ByteToMessageDecoder.java:263) ~[netty-all-4.0.8.Final.jar:na]
+	at io.netty.handler.codec.ByteToMessageDecoder.channelRead(ByteToMessageDecoder.java:131) ~[netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.DefaultChannelHandlerContext.invokeChannelRead(DefaultChannelHandlerContext.java:332) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.DefaultChannelHandlerContext.fireChannelRead(DefaultChannelHandlerContext.java:318) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.DefaultChannelPipeline.fireChannelRead(DefaultChannelPipeline.java:785) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.nio.AbstractNioByteChannel$NioByteUnsafe.read(AbstractNioByteChannel.java:100) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.nio.NioEventLoop.processSelectedKey(NioEventLoop.java:478) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.nio.NioEventLoop.processSelectedKeysOptimized(NioEventLoop.java:447) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.nio.NioEventLoop.run(NioEventLoop.java:341) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.util.concurrent.SingleThreadEventExecutor$2.run(SingleThreadEventExecutor.java:101) [netty-all-4.0.8.Final.jar:na]
+	at java.lang.Thread.run(Thread.java:722) [na:1.7.0_21]
+Caused by: java.nio.BufferOverflowException: null
+	at java.nio.Buffer.nextPutIndex(Buffer.java:513) ~[na:1.7.0_21]
+	at java.nio.HeapByteBuffer.put(HeapByteBuffer.java:163) ~[na:1.7.0_21]
+	at com.olfa.b2b.fix.FixParser.onData(FixParser.java:51) ~[classes/:na]
+	at com.olfa.b2b.fix.FixDecoder.decode(FixDecoder.java:20) ~[classes/:na]
+	at io.netty.handler.codec.ByteToMessageDecoder.callDecode(ByteToMessageDecoder.java:232) ~[netty-all-4.0.8.Final.jar:na]
+	... 10 common frames omitted
+10:22:23.274 [nioEventLoopGroup-3-1] WARN  i.n.channel.DefaultChannelPipeline - An exceptionCaught() event was fired, and it reached at the tail of the pipeline. It usually means the last handler in the pipeline did not handle the exception.
+io.netty.handler.codec.DecoderException: java.nio.BufferUnderflowException
+	at io.netty.handler.codec.ByteToMessageDecoder.callDecode(ByteToMessageDecoder.java:263) ~[netty-all-4.0.8.Final.jar:na]
+	at io.netty.handler.codec.ByteToMessageDecoder.channelRead(ByteToMessageDecoder.java:131) ~[netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.DefaultChannelHandlerContext.invokeChannelRead(DefaultChannelHandlerContext.java:332) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.DefaultChannelHandlerContext.fireChannelRead(DefaultChannelHandlerContext.java:318) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.DefaultChannelPipeline.fireChannelRead(DefaultChannelPipeline.java:785) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.nio.AbstractNioByteChannel$NioByteUnsafe.read(AbstractNioByteChannel.java:100) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.nio.NioEventLoop.processSelectedKey(NioEventLoop.java:478) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.nio.NioEventLoop.processSelectedKeysOptimized(NioEventLoop.java:447) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.nio.NioEventLoop.run(NioEventLoop.java:341) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.util.concurrent.SingleThreadEventExecutor$2.run(SingleThreadEventExecutor.java:101) [netty-all-4.0.8.Final.jar:na]
+	at java.lang.Thread.run(Thread.java:722) [na:1.7.0_21]
+Caused by: java.nio.BufferUnderflowException: null
+	at java.nio.Buffer.nextGetIndex(Buffer.java:498) ~[na:1.7.0_21]
+	at java.nio.HeapByteBuffer.getInt(HeapByteBuffer.java:355) ~[na:1.7.0_21]
+	at com.olfa.b2b.fix.FixParser.emitTag(FixParser.java:76) ~[classes/:na]
+	at com.olfa.b2b.fix.FixParser.onData(FixParser.java:48) ~[classes/:na]
+	at com.olfa.b2b.fix.FixDecoder.decode(FixDecoder.java:20) ~[classes/:na]
+	at io.netty.handler.codec.ByteToMessageDecoder.callDecode(ByteToMessageDecoder.java:232) ~[netty-all-4.0.8.Final.jar:na]
+	... 10 common frames omitted
+10:32:56.168 [nioEventLoopGroup-3-1] WARN  i.n.channel.DefaultChannelPipeline - An exceptionCaught() event was fired, and it reached at the tail of the pipeline. It usually means the last handler in the pipeline did not handle the exception.
+io.netty.handler.codec.DecoderException: java.lang.NumberFormatException: For input string: " "
+	at io.netty.handler.codec.ByteToMessageDecoder.callDecode(ByteToMessageDecoder.java:263) ~[netty-all-4.0.8.Final.jar:na]
+	at io.netty.handler.codec.ByteToMessageDecoder.channelRead(ByteToMessageDecoder.java:131) ~[netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.DefaultChannelHandlerContext.invokeChannelRead(DefaultChannelHandlerContext.java:332) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.DefaultChannelHandlerContext.fireChannelRead(DefaultChannelHandlerContext.java:318) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.DefaultChannelPipeline.fireChannelRead(DefaultChannelPipeline.java:785) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.nio.AbstractNioByteChannel$NioByteUnsafe.read(AbstractNioByteChannel.java:100) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.nio.NioEventLoop.processSelectedKey(NioEventLoop.java:478) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.nio.NioEventLoop.processSelectedKeysOptimized(NioEventLoop.java:447) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.nio.NioEventLoop.run(NioEventLoop.java:341) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.util.concurrent.SingleThreadEventExecutor$2.run(SingleThreadEventExecutor.java:101) [netty-all-4.0.8.Final.jar:na]
+	at java.lang.Thread.run(Thread.java:722) [na:1.7.0_21]
+Caused by: java.lang.NumberFormatException: For input string: " "
+	at java.lang.NumberFormatException.forInputString(NumberFormatException.java:65) ~[na:1.7.0_21]
+	at java.lang.Integer.parseInt(Integer.java:481) ~[na:1.7.0_21]
+	at java.lang.Integer.parseInt(Integer.java:527) ~[na:1.7.0_21]
+	at com.olfa.b2b.fix.FixParser.emitTag(FixParser.java:77) ~[classes/:na]
+	at com.olfa.b2b.fix.FixParser.onData(FixParser.java:48) ~[classes/:na]
+	at com.olfa.b2b.fix.FixDecoder.decode(FixDecoder.java:20) ~[classes/:na]
+	at io.netty.handler.codec.ByteToMessageDecoder.callDecode(ByteToMessageDecoder.java:232) ~[netty-all-4.0.8.Final.jar:na]
+	... 10 common frames omitted
+11:53:20.739 [nioEventLoopGroup-3-1] WARN  i.n.channel.DefaultChannelPipeline - An exceptionCaught() event was fired, and it reached at the tail of the pipeline. It usually means the last handler in the pipeline did not handle the exception.
+io.netty.handler.codec.DecoderException: java.lang.ArrayIndexOutOfBoundsException: 0
+	at io.netty.handler.codec.ByteToMessageDecoder.callDecode(ByteToMessageDecoder.java:263) ~[netty-all-4.0.8.Final.jar:na]
+	at io.netty.handler.codec.ByteToMessageDecoder.channelRead(ByteToMessageDecoder.java:131) ~[netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.DefaultChannelHandlerContext.invokeChannelRead(DefaultChannelHandlerContext.java:332) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.DefaultChannelHandlerContext.fireChannelRead(DefaultChannelHandlerContext.java:318) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.DefaultChannelPipeline.fireChannelRead(DefaultChannelPipeline.java:785) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.nio.AbstractNioByteChannel$NioByteUnsafe.read(AbstractNioByteChannel.java:100) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.nio.NioEventLoop.processSelectedKey(NioEventLoop.java:478) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.nio.NioEventLoop.processSelectedKeysOptimized(NioEventLoop.java:447) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.nio.NioEventLoop.run(NioEventLoop.java:341) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.util.concurrent.SingleThreadEventExecutor$2.run(SingleThreadEventExecutor.java:101) [netty-all-4.0.8.Final.jar:na]
+	at java.lang.Thread.run(Thread.java:722) [na:1.7.0_21]
+Caused by: java.lang.ArrayIndexOutOfBoundsException: 0
+	at com.olfa.b2b.fix.GroupBuilder.<init>(GroupBuilder.java:23) ~[classes/:na]
+	at com.olfa.b2b.fix.SpanBuilder.onTag(SpanBuilder.java:33) ~[classes/:na]
+	at com.olfa.b2b.fix.FixParser.onTag(FixParser.java:72) ~[classes/:na]
+	at com.olfa.b2b.fix.FixParser.emitTag(FixParser.java:86) ~[classes/:na]
+	at com.olfa.b2b.fix.FixParser.onData(FixParser.java:48) ~[classes/:na]
+	at com.olfa.b2b.fix.FixDecoder.decode(FixDecoder.java:20) ~[classes/:na]
+	at io.netty.handler.codec.ByteToMessageDecoder.callDecode(ByteToMessageDecoder.java:232) ~[netty-all-4.0.8.Final.jar:na]
+	... 10 common frames omitted
+11:57:30.426 [nioEventLoopGroup-3-1] WARN  i.n.channel.DefaultChannelPipeline - An exceptionCaught() event was fired, and it reached at the tail of the pipeline. It usually means the last handler in the pipeline did not handle the exception.
+io.netty.handler.codec.DecoderException: java.lang.AssertionError
+	at io.netty.handler.codec.ByteToMessageDecoder.callDecode(ByteToMessageDecoder.java:263) ~[netty-all-4.0.8.Final.jar:na]
+	at io.netty.handler.codec.ByteToMessageDecoder.channelRead(ByteToMessageDecoder.java:131) ~[netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.DefaultChannelHandlerContext.invokeChannelRead(DefaultChannelHandlerContext.java:332) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.DefaultChannelHandlerContext.fireChannelRead(DefaultChannelHandlerContext.java:318) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.DefaultChannelPipeline.fireChannelRead(DefaultChannelPipeline.java:785) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.nio.AbstractNioByteChannel$NioByteUnsafe.read(AbstractNioByteChannel.java:100) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.nio.NioEventLoop.processSelectedKey(NioEventLoop.java:478) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.nio.NioEventLoop.processSelectedKeysOptimized(NioEventLoop.java:447) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.channel.nio.NioEventLoop.run(NioEventLoop.java:341) [netty-all-4.0.8.Final.jar:na]
+	at io.netty.util.concurrent.SingleThreadEventExecutor$2.run(SingleThreadEventExecutor.java:101) [netty-all-4.0.8.Final.jar:na]
+	at java.lang.Thread.run(Thread.java:722) [na:1.7.0_21]
+Caused by: java.lang.AssertionError: null
+	at com.olfa.b2b.fix.GroupBuilder.<init>(GroupBuilder.java:22) ~[classes/:na]
+	at com.olfa.b2b.fix.SpanBuilder.onTag(SpanBuilder.java:33) ~[classes/:na]
+	at com.olfa.b2b.fix.FixParser.onTag(FixParser.java:72) ~[classes/:na]
+	at com.olfa.b2b.fix.FixParser.emitTag(FixParser.java:86) ~[classes/:na]
+	at com.olfa.b2b.fix.FixParser.onData(FixParser.java:48) ~[classes/:na]
+	at com.olfa.b2b.fix.FixDecoder.decode(FixDecoder.java:20) ~[classes/:na]
+	at io.netty.handler.codec.ByteToMessageDecoder.callDecode(ByteToMessageDecoder.java:232) ~[netty-all-4.0.8.Final.jar:na]
+	... 10 common frames omitted

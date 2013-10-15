@@ -11,11 +11,11 @@ public class FixParser {
     private ByteState state = GARBAGE;
     private final ByteBuffer tagNumBuffer = ByteBuffer.allocate(10);
     private final ByteBuffer valueBuffer = ByteBuffer.allocate(65535);
+    private final SpanBuilder builder = new SpanBuilder(new MockFixDictionary());
     private final List<FixSpan> messages = new ArrayList<>();
 
     public List<FixSpan> onData(byte[] bytes) {
         for (byte b : bytes) {
-            System.out.println(state);
             switch (state) {
                 case GARBAGE:
                     if (isNumber(b)) {
@@ -54,8 +54,11 @@ public class FixParser {
                     if (isNumber(b)) {
                         tagNumBuffer.put(b);
                         state = TAGNUM;
+                    } else if (isMessageSplit(b)) {
+                        FixSpan span = builder.emit();
+                        System.out.println(span);
+                        fault();
                     } else {
-                        // todo add double split for FIXLIKE
                         fault();
                     }
                     break;
@@ -65,14 +68,17 @@ public class FixParser {
     }
 
     public void onTag(FixTag tag) {
+        builder.onTag(tag);
         System.out.println(tag);
     }
 
     private void emitTag() {
-        int tagNum = tagNumBuffer.getInt();
-        byte[] bytes = new byte[valueBuffer.remaining()];
-        valueBuffer.get(bytes);
-        String value = new String(bytes);
+        byte[] tagBytes = new byte[tagNumBuffer.remaining()];
+        tagNumBuffer.get(tagBytes);
+        int tagNum = Integer.parseInt(new String(tagBytes));
+        byte[] valueBytes = new byte[valueBuffer.remaining()];
+        valueBuffer.get(valueBytes);
+        String value = new String(valueBytes);
         FixTag tag = new FixTag(tagNum, value);
         tagNumBuffer.clear();
         valueBuffer.clear();
@@ -94,7 +100,11 @@ public class FixParser {
     }
 
     private boolean isSplit(byte b) {
-        return b == 0x01;
+        return b == '|';
+    }
+
+    private boolean isMessageSplit(byte b) {
+        return b == ' ';
     }
 
     enum ByteState {
