@@ -99,19 +99,19 @@ public class FixParser {
     }
 
     private boolean isNumber(byte b) {
-        return b >= 0x30 && b <= 0x39;
+        return b >= '0' && b <= '9';
     }
 
     private boolean isEqualsSign(byte b) {
-        return b == 0x3D;
+        return b == '=';
     }
 
     private boolean isSplit(byte b) {
-        return b == '|';
+        return b == 0x01;
     }
 
     private boolean isMessageSplit(byte b) {
-        return b == ' ';
+        return b == 0x02;
     }
 
     enum ByteState {

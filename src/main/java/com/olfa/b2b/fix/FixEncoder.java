@@ -8,5 +8,6 @@ public class FixEncoder extends MessageToByteEncoder<FixSpan> {
     @Override
     protected void encode(ChannelHandlerContext ctx, FixSpan msg, ByteBuf out) throws Exception {
         out.writeBytes(msg.encode());
+        out.writeByte(ByteSerializable.MESSAGE_DIVIDER);
     }
 }

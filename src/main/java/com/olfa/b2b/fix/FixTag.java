@@ -4,7 +4,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.math.BigDecimal;
 
-public class FixTag implements FixElement {
+public class FixTag implements FixElement, ByteSerializable {
     private final int number;
     private @NotNull final String value;
 
@@ -72,6 +72,11 @@ public class FixTag implements FixElement {
     @Override
     public String toString() {
         return number + "=" + value;
+    }
+
+    @Override
+    public byte[] encode() {
+        return toString().getBytes();
     }
 
     @Override

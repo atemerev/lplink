@@ -22,6 +22,7 @@ public class FixServerHandler extends ChannelInboundHandlerAdapter {
         for (FixSpan response : responses) {
             System.out.println(">> " + response);
             ctx.write(response);
+            ctx.flush();
         }
     }
 }

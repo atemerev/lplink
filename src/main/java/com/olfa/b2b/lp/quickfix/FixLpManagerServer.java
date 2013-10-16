@@ -11,6 +11,7 @@ import com.olfa.b2b.lp.LiquidityProvider;
 import com.olfa.b2b.lp.LpManager;
 import quickfix.field.*;
 import quickfix.fix44.NetworkStatusRequest;
+import quickfix.fix44.NetworkStatusResponse;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -65,6 +66,7 @@ public class FixLpManagerServer implements FixMessageListener {
                 ));
             }
             FixSpan response = new FixSpan(
+                    new FixTag(MsgType.FIELD, NetworkStatusResponse.MSGTYPE),
                     new FixTag(NetworkStatusResponseType.FIELD, NetworkStatusResponseType.FULL),
                     new FixTag(NetworkRequestID.FIELD, requestId),
                     new FixTag(NetworkResponseID.FIELD, responseId),

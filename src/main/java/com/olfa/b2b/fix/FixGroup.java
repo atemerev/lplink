@@ -7,7 +7,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-public class FixGroup implements FixElement {
+public class FixGroup implements FixElement, ByteSerializable {
 
     private final FixTag groupTag;
     private final List<FixSpan> spans;
@@ -39,9 +39,13 @@ public class FixGroup implements FixElement {
 
     @Override
     public String toString() {
+        return toString(" | ");
+    }
+
+    public String toString(String divider) {
         StringBuilder builder = new StringBuilder();
         for (FixSpan span : spans) {
-            builder.append(span.toString());
+            builder.append(span.toString(divider));
         }
         return builder.toString();
     }
@@ -49,5 +53,9 @@ public class FixGroup implements FixElement {
     @Override
     public boolean isGroup() {
         return true;
+    }
+
+    public byte[] encode() {
+        return toString(String.valueOf((char) ByteSerializable.FIELD_DIVIDER)).getBytes();
     }
 }

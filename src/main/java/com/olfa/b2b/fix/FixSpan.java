@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-public class FixSpan {
+public class FixSpan implements ByteSerializable {
 
     private final LinkedHashMap<Integer, FixTag> tags;
     private final Map<Integer, FixGroup> groups;
@@ -51,18 +51,21 @@ public class FixSpan {
     }
 
     public byte[] encode() {
-        // todo implement
-        return new byte[0];
+        return toString(String.valueOf((char) ByteSerializable.FIELD_DIVIDER)).getBytes();
     }
 
     @Override
     public String toString() {
+        return toString(" | ");
+    }
+
+    public String toString(String divider) {
         StringBuilder builder = new StringBuilder();
         for (FixTag tag : tags.values()) {
             builder.append(tag.toString());
-            builder.append(" | ");
+            builder.append(divider);
             if (groups.containsKey(tag.getNumber())) {
-                builder.append(groups.get(tag.getNumber()).toString());
+                builder.append(groups.get(tag.getNumber()).toString(divider));
             }
         }
         return builder.toString();

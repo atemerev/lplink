@@ -1,3 +1,3 @@
 Manifest-Version: 1.0
-Main-Class: com.olfa.b2b.lp.quickfix.FixLpManagerServer
+Main-Class: com.olfa.b2b.fix.FixServer
 
