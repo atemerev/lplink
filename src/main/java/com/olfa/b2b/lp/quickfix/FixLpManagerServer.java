@@ -1,6 +1,5 @@
 package com.olfa.b2b.lp.quickfix;
 
-import com.olfa.b2b.domain.CurrencyPair;
 import com.olfa.b2b.domain.Subscription;
 import com.olfa.b2b.exception.ConfigurationException;
 import com.olfa.b2b.fix.FixGroup;
@@ -13,7 +12,6 @@ import quickfix.field.*;
 import quickfix.fix44.NetworkStatusRequest;
 import quickfix.fix44.NetworkStatusResponse;
 
-import java.math.BigDecimal;
 import java.util.*;
 
 public class FixLpManagerServer implements FixMessageListener {
