@@ -25,11 +25,11 @@ public class CommandParser {
             switch(tokens[0]) {
                 // todo fix commands
                 case "start":
-//                    return new StartCommand(liquidityManager, shell, tokens);
+                    return new StartCommand(liquidityManager, shell, tokens);
                 case "stop":
-//                    return new StopCommand(liquidityManager, shell, tokens);
+                    return new StopCommand(liquidityManager, shell, tokens);
                 case "restart":
-//                    return new RestartCommand(liquidityManager, shell, tokens);
+                    return new RestartCommand(liquidityManager, shell, tokens);
                 case "market":
 //                    return new MarketCommand(liquidityManager.subscriptionMonitor, shell, tokens);
                 default:

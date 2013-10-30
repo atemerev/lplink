@@ -16,7 +16,6 @@ public class Quote {
     }
 
     public @NotNull final String quoteId;
-
     public @NotNull final Action action;
     public @NotNull final Subscription subscription;
     public @NotNull final Side side;
@@ -37,7 +36,6 @@ public class Quote {
             @Nullable String bandId,
             @Nullable BigDecimal amount,
             @Nullable BigDecimal price) {
-        assert bandId != null ^ amount != null;
         this.subscription = subscription;
         this.lpQuoteId = lpQuoteId;
         this.quoteReqId = quoteReqId;

@@ -1,7 +1,5 @@
 package com.olfa.b2b.lp.quickfix;
 
-import com.olfa.b2b.domain.CurrencyPair;
-import com.olfa.b2b.domain.Subscription;
 import com.olfa.b2b.exception.ConfigurationException;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
@@ -10,12 +8,9 @@ import org.jetbrains.annotations.Nullable;
 import quickfix.SessionID;
 import quickfix.SessionSettings;
 
-import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 public class FixLpConfiguration {
 
@@ -26,7 +21,7 @@ public class FixLpConfiguration {
     public final String name;
     public final Map<String, SessionID> sessionIDs;
     public final SessionSettings sessionSettings;
-    public final Set<Subscription> subscriptions;
+//    public final Set<Subscription> subscriptions;
 
     @SuppressWarnings("NullableProblems")
     public FixLpConfiguration(@NotNull String name, @NotNull Config rawConfig, @NotNull Config defaultConfig) throws ConfigurationException {
@@ -37,7 +32,7 @@ public class FixLpConfiguration {
         Config defaultSession = rawConfig.getConfig("sessions.default");
         populateDefaultSession(defaultSession);
         this.sessionIDs = populateSessions(defaultSession.getString("version"), rawConfig);
-        this.subscriptions = mkFeeds(rawConfig);
+//        this.subscriptions = mkFeeds(rawConfig);
     }
 
     public FixLpConfiguration(@NotNull String name, @NotNull Config rawConfig) {
@@ -70,10 +65,10 @@ public class FixLpConfiguration {
         Map unwrapped = defaultConfig.root().unwrapped();
         sessionSettings.set(unwrapped);
         sessionSettings.setString("ConnectionType", "initiator");
-        sessionSettings.setString("DataDictionary", defaultSession.getString("dictionary"));
+        sessionSettings.setString("DataDictionary", "lp/" + name + "/" + defaultSession.getString("dictionary"));
         // todo JDBC support
         sessionSettings.setString("LogFactory", "file");
-        sessionSettings.setString("FileLogPath", defaultSession.getString("log").split(":")[1]);
+        sessionSettings.setString("FileLogPath", defaultSession.getString("log"));
         sessionSettings.setString("MessageStoreFactory", "memory");
         sessionSettings.setBool("UseDataDictionary", true);
         sessionSettings.setString("BeginString", defaultSession.getString("version"));
@@ -124,6 +119,7 @@ public class FixLpConfiguration {
     }
 
 
+/*
     private Set<Subscription> mkFeeds(Config conf) {
         Set<Subscription> subscriptions = new HashSet<>();
         for (String symbol : conf.getStringList("instruments")) {
@@ -133,4 +129,5 @@ public class FixLpConfiguration {
         }
         return Collections.unmodifiableSet(subscriptions);
     }
+*/
 }

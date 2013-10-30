@@ -3,7 +3,7 @@ package com.olfa.b2b.fix;
 import com.olfa.b2b.domain.CurrencyPair;
 import com.olfa.b2b.domain.Subscription;
 import com.olfa.b2b.lp.LpManager;
-import com.olfa.b2b.lp.quickfix.FixLpManagerServer;
+import com.olfa.b2b.shell.Shell;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -59,16 +59,19 @@ public class FixServer {
             port = 6440;
         }
         Set<Subscription> subs = new HashSet<>();
-        subs.add(new Subscription("rbs", new CurrencyPair("EUR/USD"), new BigDecimal("1000000"), null));
-        subs.add(new Subscription("rbs", new CurrencyPair("EUR/USD"), new BigDecimal("3000000"), null));
-        subs.add(new Subscription("rbs", new CurrencyPair("EUR/USD"), new BigDecimal("5000000"), null));
-        subs.add(new Subscription("rbs", new CurrencyPair("GBP/USD"), new BigDecimal("1000000"), null));
-        subs.add(new Subscription("rbs", new CurrencyPair("GBP/USD"), new BigDecimal("3000000"), null));
-        subs.add(new Subscription("rbs", new CurrencyPair("GBP/USD"), new BigDecimal("5000000"), null));
-        subs.add(new Subscription("bnp", new CurrencyPair("USD/JPY"), new BigDecimal("1000000"), "BLUE"));
-        subs.add(new Subscription("bnp", new CurrencyPair("USD/JPY"), new BigDecimal("3000000"), "BLUE"));
+        subs.add(new Subscription("rbs", new CurrencyPair("EUR/USD"), 1000000, null));
+        subs.add(new Subscription("rbs", new CurrencyPair("EUR/USD"), 3000000, null));
+        subs.add(new Subscription("rbs", new CurrencyPair("EUR/USD"), 5000000, null));
+        subs.add(new Subscription("rbs", new CurrencyPair("GBP/USD"), 1000000, null));
+        subs.add(new Subscription("rbs", new CurrencyPair("GBP/USD"), 3000000, null));
+        subs.add(new Subscription("rbs", new CurrencyPair("GBP/USD"), 5000000, null));
+//        subs.add(new Subscription("bnp", new CurrencyPair("USD/JPY"), 1000000, "BLUE"));
+//        subs.add(new Subscription("bnp", new CurrencyPair("USD/JPY"), 5000000, "BLUE"));
         LpManager lpManager = new LpManager(subs, 1000, 30000);
-        FixLpManagerServer server = new FixLpManagerServer(lpManager);
+        lpManager.start();
+        Shell shell = new Shell(lpManager);
+        shell.start();
+        FixLpManagerListener server = new FixLpManagerListener(lpManager);
         new FixServer(port, server).run();
     }
 }

@@ -13,18 +13,17 @@ import java.io.InputStreamReader;
 public class Shell {
 
     private static final String PROMPT = "> ";
+    private final LpManager lpManager;
 
-    public Shell() {
+    public Shell(LpManager lpManager) {
+        this.lpManager = lpManager;
     }
 
     @SuppressWarnings("InfiniteLoopStatement")
     public void start() {
-        final Config b2bConfig = ConfigFactory.load("lp/b2b.conf");
-        // todo fix
-        final LpManager liquidityManager = new LpManager(null, 0, 0);
-        final CommandParser parser = new CommandParser(liquidityManager, this);
+        final CommandParser parser = new CommandParser(lpManager, this);
         BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
-        log("Olfa LP Manager 2013-04-11-001 is online.\n");
+        log("Olfa LP Manager 2013-10-30 is online.\n");
         while (true) {
             try {
                 System.out.print(PROMPT);
@@ -41,18 +40,16 @@ public class Shell {
                         log(String.format("Unrecognized command: %s", input));
                     }
                 }
+                Thread.sleep(100);
             } catch (IOException e) {
                 log(String.format("I/O error: unable to read your input -- %s", e.getMessage()));
+            } catch (InterruptedException e) {
+                // Ignore
             }
         }
     }
 
     public void log(String message) {
         System.out.println(message);
-    }
-
-    public static void main(String[] args) throws Exception {
-        Shell shell = new Shell();
-        shell.start();
     }
 }

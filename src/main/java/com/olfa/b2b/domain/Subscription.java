@@ -25,8 +25,12 @@ public class Subscription {
         this.requestId = toString() + "req" + System.currentTimeMillis();
     }
 
+    public Subscription(@NotNull String source, @NotNull CurrencyPair instrument, @Nullable Integer amount, @Nullable String classifier) {
+        this(source, instrument, amount == null ? null : new BigDecimal(amount), classifier);
+    }
+
     public Subscription(@NotNull String source, @NotNull CurrencyPair instrument) {
-        this(source, instrument, null, null);
+        this(source, instrument, (Integer) null, null);
     }
 
     @Override public String toString() {

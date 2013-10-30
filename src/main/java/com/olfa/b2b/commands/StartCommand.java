@@ -18,7 +18,7 @@ public class StartCommand implements Command {
     @SuppressWarnings("unchecked")
     @Override public void run() {
         if (lpName != null) {
-            // todo implement
+            liquidityManager.connect(lpName);
         }
     }
 }

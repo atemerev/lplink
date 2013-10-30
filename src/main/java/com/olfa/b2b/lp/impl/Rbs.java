@@ -44,12 +44,6 @@ public class Rbs extends FixLiquidityProvider {
         group.set(new SettlType(SettlType.REGULAR));
         message.addGroup(group);
         sendTo(QUOTE_SESSION, message);
-        /*
-         FIX44.QuoteRequest(
-             FIX44.QuoteReqID(subscription.requestId),
-             FIX44.Symbol(subscription.instrument.toString()),
-             FIX44.Group(FIX44.NoRelatedSym, FIX44.OrderQty(subscription.amount), FIX44.SettlType.REGULAR));
-        */
     }
 
     public void doUnsubscribe(Subscription subscription) {
@@ -155,7 +149,7 @@ public class Rbs extends FixLiquidityProvider {
         }
     }
 
-    public void onMessage(Message message, SessionID sid) throws FieldNotFound, UnsupportedMessageType, IncorrectTagValue {
+    public void onMessage(quickfix.fix44.Message message, SessionID sid) throws FieldNotFound, UnsupportedMessageType, IncorrectTagValue {
         String msgType = message.getHeader().getString(MsgType.FIELD);
         if (APPLICATION_PING_REQUEST.equals(msgType)) {
             long time = message.getUtcTimeStamp(TransactTime.FIELD).getTime();

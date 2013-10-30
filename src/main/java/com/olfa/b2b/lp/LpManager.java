@@ -7,6 +7,7 @@ import com.olfa.b2b.events.MarketDataListener;
 import com.olfa.b2b.events.StatusEvent;
 import com.olfa.b2b.exception.ConfigurationException;
 import com.olfa.b2b.exception.ValidationException;
+import com.olfa.b2b.lp.quickfix.FixLiquidityProvider;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import org.jetbrains.annotations.Nullable;
@@ -89,23 +90,20 @@ public class LpManager implements MarketDataListener {
 
     class Tick {
         public final long timestamp;
+
         Tick(long timestamp) {
             this.timestamp = timestamp;
         }
     }
 
     public void subscribe(Subscription subscription) throws ValidationException {
-        if (!isOnline(subscription)) {
-            LiquidityProvider lp = getOrCreateLiquidityProvider(subscription.source);
-            lp.subscribe(subscription);
-        }
+        LiquidityProvider lp = getOrCreateLiquidityProvider(subscription.source);
+        lp.subscribe(subscription);
     }
 
     public void unsubscribe(Subscription subscription) throws ValidationException {
-        if (isOnline(subscription)) {
-            LiquidityProvider lp = getOrCreateLiquidityProvider(subscription.source);
-            lp.unsubscribe(subscription);
-        }
+        LiquidityProvider lp = getOrCreateLiquidityProvider(subscription.source);
+        lp.unsubscribe(subscription);
     }
 
     public void start() {
@@ -121,18 +119,35 @@ public class LpManager implements MarketDataListener {
         }
     }
 
+    public void connect(String lpName) {
+        getOrCreateLiquidityProvider(lpName);
+    }
+
+    public void disconnect(String lpName) {
+        LiquidityProvider lp = liquidityProviders.get(lpName);
+        if (lp != null) {
+            if (lp instanceof FixLiquidityProvider) {
+                FixLiquidityProvider fixLp = (FixLiquidityProvider) lp;
+                fixLp.disconnect();
+            }
+            liquidityProviders.remove(lpName);
+        }
+    }
+
+
     public void addStatusListener(LpStatusListener listener) {
         statusListeners.add(listener);
     }
 
-    @Override protected void finalize() throws Throwable {
+    @Override
+    protected void finalize() throws Throwable {
         super.finalize();
         stop();
     }
 
     private LiquidityProvider getOrCreateLiquidityProvider(String lpName) {
         LiquidityProvider lp = liquidityProviders.get(lpName);
-        if (lp == null)  {
+        if (lp == null) {
             lp = startLiquidityProvider(lpName);
             lp.addStatusListener(new LpMonitorListener());
             liquidityProviders.put(lpName, lp);
@@ -147,16 +162,16 @@ public class LpManager implements MarketDataListener {
             Class<? extends LiquidityProvider> lpClass = (Class<? extends LiquidityProvider>) Class.forName(lpConfig.getString("implementation"));
             return lpClass.getConstructor(Config.class).newInstance(lpConfig);
         } catch (ClassNotFoundException |
-                 NoSuchMethodException |
-                 InvocationTargetException |
-                 IllegalAccessException |
-                 InstantiationException e) {
+                NoSuchMethodException |
+                InvocationTargetException |
+                IllegalAccessException |
+                InstantiationException e) {
             throw new ConfigurationException(e);
         }
     }
 
     private Config getLpConfig(String lpName) {
-        return ConfigFactory.load("/lp/" + lpName + "/lp.conf");
+        return ConfigFactory.load("lp/" + lpName + "/lp.conf");
     }
 
     private void touch(Subscription subscription) {

@@ -7,9 +7,10 @@ import com.olfa.b2b.exception.ConfigurationException;
 import com.olfa.b2b.exception.LifecycleException;
 import com.olfa.b2b.exception.RejectedException;
 import com.olfa.b2b.lp.AbstractLiquidityProvider;
-import com.olfa.b2b.lp.quickfix.FixLpConfiguration;
 import com.typesafe.config.Config;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import quickfix.*;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -20,6 +21,8 @@ public abstract class FixLiquidityProvider extends AbstractLiquidityProvider imp
 
     public static final String QUOTE_SESSION = "quote";
     public static final String TRADE_SESSION = "trade";
+
+    private static final Logger log = LoggerFactory.getLogger(FixLiquidityProvider.class);
 
     private final CountDownLatch startupLatch = new CountDownLatch(1);
     private final Initiator initiator;
@@ -32,7 +35,7 @@ public abstract class FixLiquidityProvider extends AbstractLiquidityProvider imp
     protected FixLiquidityProvider(String name, @NotNull Config conf) throws ConfigurationException {
         super();
         try {
-            this.configuration = new FixLpConfiguration(name, conf, null);
+            this.configuration = new FixLpConfiguration(name, conf);
             for (SessionID sid : configuration.sessionIDs.values()) {
                 sessionStatus.put(sid, false);
             }
@@ -48,7 +51,7 @@ public abstract class FixLiquidityProvider extends AbstractLiquidityProvider imp
     }
 
     public void disconnect() {
-        initiator.stop();
+        initiator.stop(true);
         fireStatusEvent(new StatusEvent(getName(),
                 String.format("LP %s has been stopped", getName()), StatusEvent.Type.DISCONNECTED));
     }
@@ -167,6 +170,7 @@ public abstract class FixLiquidityProvider extends AbstractLiquidityProvider imp
     }
 
     private void onSessionOnline(SessionID sid) {
+        log.info(String.format("%s FIX session online: %s", getName(), sid.toString()));
         sessionStatus.put(sid, true);
         boolean allOnline = true;
         for (SessionID sessionID : sessionStatus.keySet()) {
@@ -177,6 +181,7 @@ public abstract class FixLiquidityProvider extends AbstractLiquidityProvider imp
         }
         if (allOnline) {
             startupLatch.countDown();
+            log.info(String.format("%s is connected", getName()));
         }
     }
 

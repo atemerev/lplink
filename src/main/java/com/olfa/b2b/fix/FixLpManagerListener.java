@@ -1,11 +1,7 @@
-package com.olfa.b2b.lp.quickfix;
+package com.olfa.b2b.fix;
 
 import com.olfa.b2b.domain.Subscription;
 import com.olfa.b2b.exception.ConfigurationException;
-import com.olfa.b2b.fix.FixGroup;
-import com.olfa.b2b.fix.FixMessageListener;
-import com.olfa.b2b.fix.FixSpan;
-import com.olfa.b2b.fix.FixTag;
 import com.olfa.b2b.lp.LiquidityProvider;
 import com.olfa.b2b.lp.LpManager;
 import quickfix.field.*;
@@ -14,7 +10,7 @@ import quickfix.fix44.NetworkStatusResponse;
 
 import java.util.*;
 
-public class FixLpManagerServer implements FixMessageListener {
+public class FixLpManagerListener implements FixMessageListener {
 
     private static final int FIX_DESIRED_STATUS_VALUE = 11200;
     private static final int FIX_NO_SUBSCRIPTIONS_GROUP = 11201;
@@ -22,7 +18,7 @@ public class FixLpManagerServer implements FixMessageListener {
 
     private final LpManager lpManager;
 
-    public FixLpManagerServer(LpManager lpManager) throws ConfigurationException {
+    public FixLpManagerListener(LpManager lpManager) throws ConfigurationException {
         this.lpManager = lpManager;
     }
 
@@ -53,7 +49,6 @@ public class FixLpManagerServer implements FixMessageListener {
                                 new FixTag(FIX_DESIRED_STATUS_VALUE, subscriptionStatus)
                         ));
                     }
-
                 }
                 lpSpans.add(new FixSpan(
                         new FixTag(RefCompID.FIELD, lpName),
